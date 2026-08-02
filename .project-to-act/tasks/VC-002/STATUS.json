@@ -1,12 +1,13 @@
 {
   "schemaVersion": 1,
   "taskId": "VC-002",
-  "state": "in_progress",
-  "revision": 5,
+  "state": "done",
+  "revision": 10,
   "owner": "codex",
   "branch": "codex/vc-001-standalone-platform",
-  "contextHash": "7ef786a218fca8e12945777c07af435e21d57fdb19113d2a29a7b0f0da3de0ce",
-  "updatedAt": "2026-08-02T15:43:09.502Z",
-  "lastCheckpoint": null,
-  "activeSessionId": "s-17a9f61e-5e5c-4913-b169-dbbbef65f65c"
+  "contextHash": "63a1a33092c2225c1e46428794fac05624c24790bb188fff0cdbab9cc17a06c2",
+  "updatedAt": "2026-08-02T15:49:14.270Z",
+  "lastCheckpoint": "86420379-9c4d-4a5e-83fe-3723f468816d",
+  "activeSessionId": null,
+  "headSha": "91aadebf0f51c7c7c554352587432a077559a6d3"
 }

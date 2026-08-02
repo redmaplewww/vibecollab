@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "E-VC-002-001",
+  "taskId": "VC-002",
+  "recordedAt": "2026-08-02T15:47:00.000Z",
+  "codeVersion": "91aadebf0f51c7c7c554352587432a077559a6d3",
+  "summary": "A complete handoff package was built and restored in a clean Windows directory. A first-run CRLF failure was corrected with a repository LF policy before acceptance.",
+  "checks": [
+    {
+      "name": "handoff-build",
+      "result": "passed",
+      "detail": "source ZIP, Git Bundle, README-HANDOFF, manifest and SHA256SUMS generated"
+    },
+    { "name": "bundle-verify-clone", "result": "passed", "detail": "complete history and HEAD restored" },
+    {
+      "name": "zip-boundary",
+      "result": "passed",
+      "detail": "141 entries; required source present; local config, secrets, dependencies, build cache and artifacts absent"
+    },
+    {
+      "name": "cross-platform-line-endings",
+      "result": "passed-after-correction",
+      "detail": "initial CRLF format failure retained in session evidence; .gitattributes then enforced LF"
+    },
+    { "name": "restored-npm-ci", "result": "passed", "detail": "388 packages installed from lockfile" },
+    {
+      "name": "restored-verify",
+      "result": "passed",
+      "detail": "format, lint, typecheck, 4/4 tests and Next.js production build"
+    }
+  ],
+  "artifactEvidence": "Exact final artifact sizes and SHA-256 values are stored in artifacts/VibeCollab-v0.1.0-handoff/PACKAGE-MANIFEST.json and SHA256SUMS.txt.",
+  "limitations": [
+    "No GitHub remote or GitHub Release was created.",
+    "No open-source license has been selected by the project owner.",
+    "The handoff artifact directory is intentionally ignored by Git."
+  ]
+}

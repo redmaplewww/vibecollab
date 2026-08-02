@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "eventId": "86420379-9c4d-4a5e-83fe-3723f468816d",
+  "taskId": "VC-002",
+  "type": "checkpoint",
+  "timestamp": "2026-08-02T15:49:12.669Z",
+  "summary": "Handoff ZIP, Bundle, checksums and clean-directory restore verified after fixing Windows CRLF",
+  "metrics": {
+    "available": true,
+    "commits": 2,
+    "files": 17,
+    "additions": 760,
+    "deletions": 21,
+    "headSha": "91aadebf0f51c7c7c554352587432a077559a6d3"
+  },
+  "revision": 7
+}

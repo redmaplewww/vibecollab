@@ -7,17 +7,28 @@
   "executorVersion": null,
   "model": null,
   "source": "cli-tracked",
-  "status": "running",
+  "status": "completed",
   "startedAt": "2026-08-02T15:37:59.206Z",
-  "endedAt": null,
-  "elapsedSeconds": null,
+  "endedAt": "2026-08-02T15:49:13.145Z",
+  "elapsedSeconds": 674,
   "gitStart": {
     "available": true,
     "headSha": "78a5d7b86ad08a5855284b920868e8ea3838f80c",
     "clean": false,
     "statusHash": "02cfe277642ee7af928edb2a178a061f7118a2e7a21715c2fa14eb2ec718332e"
   },
-  "gitMetrics": null,
-  "toolReported": null,
-  "summary": null
+  "gitMetrics": {
+    "available": false,
+    "reason": "dirty-session-start",
+    "startStatusHash": "02cfe277642ee7af928edb2a178a061f7118a2e7a21715c2fa14eb2ec718332e"
+  },
+  "toolReported": {
+    "source": "tool-reported",
+    "tokensIn": null,
+    "tokensOut": null,
+    "costUsd": null,
+    "testsPassed": 8,
+    "testsFailed": 0
+  },
+  "summary": "Complete v0.1.0 handoff documentation and reproducible package validated from clean Git Bundle clone"
 }

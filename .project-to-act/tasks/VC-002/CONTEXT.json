@@ -11,8 +11,8 @@
     },
     {
       "path": ".project-to-act/PROJECT_OVERVIEW.md",
-      "sha256": "043ca142bf8134bca5b3bb6af3cdfd43560275a11100f4725465586794b5e6e8",
-      "bytes": 3066,
+      "sha256": "2d3045c4a37ac24d741abab2e8e62173e7a5ef66a446d040326e535a2d7d537e",
+      "bytes": 3400,
       "normalization": "utf8-lf"
     },
     {
@@ -47,17 +47,17 @@
     },
     {
       "path": ".project-to-act/PROJECT_VERSIONS.md",
-      "sha256": "d10d49c36fb6810df66697ea4741af2d34f865088d7e5dc4f9657437178f9de2",
-      "bytes": 863,
+      "sha256": "56c7e9af649e748206a4712f2bee483a33ceebe3a7c800bbddd98c07cb9d0bc5",
+      "bytes": 936,
       "normalization": "utf8-lf"
     },
     {
       "path": ".project-to-act/PROJECT_ACCEPTANCE.md",
-      "sha256": "38da0f8639e24155d2f420b0e04efd37e6c807160ca77aadbb0630a5bf2f27c5",
-      "bytes": 3126,
+      "sha256": "a86d2b052818669354ece74248a651cd4e8502c20155fcfa933e2102d64faf5a",
+      "bytes": 4327,
       "normalization": "utf8-lf"
     }
   ],
-  "createdAt": "2026-08-02T15:43:09.499Z",
-  "contextHash": "7ef786a218fca8e12945777c07af435e21d57fdb19113d2a29a7b0f0da3de0ce"
+  "createdAt": "2026-08-02T15:48:24.049Z",
+  "contextHash": "63a1a33092c2225c1e46428794fac05624c24790bb188fff0cdbab9cc17a06c2"
 }
