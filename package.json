@@ -13,7 +13,8 @@
     "format:check": "prettier --check .",
     "verify": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build",
     "pta": "node skills/project-to-act-collaboration/scripts/pta.mjs --project-root .",
-    "adapters:check": "node scripts/sync-adapters.mjs --check"
+    "adapters:check": "node scripts/sync-adapters.mjs --check",
+    "handoff:build": "node scripts/build-handoff.mjs"
   },
   "dependencies": {
     "lucide-react": "^1.28.0",

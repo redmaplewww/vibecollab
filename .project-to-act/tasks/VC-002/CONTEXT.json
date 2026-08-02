@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-002",
+  "baseSha": "78a5d7b86ad08a5855284b920868e8ea3838f80c",
+  "inputs": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "4f01139ece8b8e161635412b6549ab449835ab6f4cb6fca4f8e9e6e601246e16",
+      "bytes": 2423,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/PROJECT_OVERVIEW.md",
+      "sha256": "043ca142bf8134bca5b3bb6af3cdfd43560275a11100f4725465586794b5e6e8",
+      "bytes": 3066,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/COLLABORATION_CONFIG.json",
+      "sha256": "5dee6b22c829fe7e01fb5b8491a69853498d6c24aa785c758763042c92b85fcd",
+      "bytes": 543,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/skill/SKILL.md",
+      "sha256": "21fce23c893b8bdf2bb0adf5209407225a1a4890e5a9d641d28724e92eeda633",
+      "bytes": 3231,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/tasks/VC-002/TASK.json",
+      "sha256": "6c66fa29d72ffd662f3cfafafe79f20b64fc8f04ae40cdc2dbf25e26967f57bb",
+      "bytes": 2685,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/tasks/VC-002/INTENT.json",
+      "sha256": "1b1e9a8dc7eeb1b68b8e9709b48600fa47c386e12d3708227eecec501c63593e",
+      "bytes": 355,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": "README.md",
+      "sha256": "cb889b2d6b733b57e27b0091e56d52e1ea8faaa8a8121a9ef69b354d83c2e0ae",
+      "bytes": 9972,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/PROJECT_VERSIONS.md",
+      "sha256": "d10d49c36fb6810df66697ea4741af2d34f865088d7e5dc4f9657437178f9de2",
+      "bytes": 863,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/PROJECT_ACCEPTANCE.md",
+      "sha256": "38da0f8639e24155d2f420b0e04efd37e6c807160ca77aadbb0630a5bf2f27c5",
+      "bytes": 3126,
+      "normalization": "utf8-lf"
+    }
+  ],
+  "createdAt": "2026-08-02T15:41:30.103Z",
+  "contextHash": "cbc095079c47895ecc49dd1ae3bcd85eb7950cb7edc0ee5b19a0d4b3cda0d42c"
+}

@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-002",
+  "title": "Build complete handoff package",
+  "owner": "codex",
+  "goal": "交付可直接移交的 VibeCollab v0.1.0 包，包含源码 ZIP、完整 Git Bundle、README、交接手册、清单和 SHA-256 校验。",
+  "reason": "用户要求代码打包并完成 README 与正式交接，使新维护者无需依赖原聊天即可恢复、运行、验证和继续开发。",
+  "currentBehavior": "独立仓库与基础 README 已存在，但缺少完整运行手册、交接清单和可复现的发行打包流程。",
+  "expectedBehavior": "一条命令生成可验证交接目录；接手人能从源码 ZIP 或 Git Bundle 恢复，并按文档完成安装、配置、启动、接入仓库和验收。",
+  "scope": {
+    "allowed": [
+      "README.md",
+      "docs/**",
+      "scripts/build-handoff.mjs",
+      "package.json",
+      ".gitignore",
+      ".project-to-act/**"
+    ],
+    "nonGoals": [
+      "发布远程 GitHub Release",
+      "写入真实令牌或本地私有路径",
+      "把 node_modules、构建缓存或 .env.local 打进交接包"
+    ]
+  },
+  "invariants": [
+    "源码包只来自已提交 Git HEAD",
+    "交接包不得包含密钥、本地项目注册表、node_modules、.next 或 Git 工作区脏改动",
+    "每个二进制工件必须提供 SHA-256 与字节数",
+    "Git Bundle 必须通过 git bundle verify"
+  ],
+  "authoritativeContext": [
+    "AGENTS.md",
+    "README.md",
+    ".project-to-act/PROJECT_VERSIONS.md",
+    ".project-to-act/PROJECT_ACCEPTANCE.md"
+  ],
+  "dependencies": [],
+  "contracts": {
+    "read": ["VibeCollab v0.1.0 source and Project-to-Act facts"],
+    "write": ["VibeCollab handoff package v1"]
+  },
+  "acceptance": [
+    "README 覆盖架构、安装、配置、使用、验证、安全、故障排查和目录结构",
+    "HANDOFF 覆盖当前状态、已知限制、接手步骤、下一阶段和验收证据",
+    "打包命令生成源码 ZIP、Git Bundle、README-HANDOFF、manifest 和 SHA256SUMS",
+    "ZIP 可解压且包含 package.json、README.md、docs/HANDOFF.md 和 src/，不含敏感或构建目录",
+    "Git Bundle 可验证并可在空目录克隆",
+    "恢复出的源码可完成 npm ci、测试与生产构建"
+  ],
+  "verification": [
+    "npm run verify",
+    "npm run handoff:build",
+    "git bundle verify <bundle>",
+    "restore fixture: git clone <bundle> and npm ci",
+    "restore fixture: npm run verify"
+  ],
+  "baseSha": "78a5d7b86ad08a5855284b920868e8ea3838f80c",
+  "gitBaseline": {
+    "clean": true,
+    "statusHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "createdAt": "2026-08-02T15:37:01.883Z"
+}

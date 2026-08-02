@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "sessionId": "s-17a9f61e-5e5c-4913-b169-dbbbef65f65c",
+  "taskId": "VC-002",
+  "actorId": "codex",
+  "executor": "codex",
+  "executorVersion": null,
+  "model": null,
+  "source": "cli-tracked",
+  "status": "running",
+  "startedAt": "2026-08-02T15:37:59.206Z",
+  "endedAt": null,
+  "elapsedSeconds": null,
+  "gitStart": {
+    "available": true,
+    "headSha": "78a5d7b86ad08a5855284b920868e8ea3838f80c",
+    "clean": false,
+    "statusHash": "02cfe277642ee7af928edb2a178a061f7118a2e7a21715c2fa14eb2ec718332e"
+  },
+  "gitMetrics": null,
+  "toolReported": null,
+  "summary": null
+}

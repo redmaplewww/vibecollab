@@ -3,6 +3,7 @@ node_modules/
 coverage/
 test-results/
 *.tsbuildinfo
+artifacts/
 vibecollab.config.local.json
 .env.local
 .project-to-act/runtime/

@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-002",
+  "revision": 0,
+  "baseSha": "78a5d7b86ad08a5855284b920868e8ea3838f80c",
+  "paths": ["README.md", "docs/**", "scripts/build-handoff.mjs", "package.json", ".gitignore", ".project-to-act/**"],
+  "symbols": ["buildHandoffPackage"],
+  "contractsWrite": ["VibeCollab handoff package v1"],
+  "migrations": false
+}
