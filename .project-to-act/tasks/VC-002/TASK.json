@@ -13,6 +13,7 @@
       "docs/**",
       "scripts/build-handoff.mjs",
       "package.json",
+      ".gitattributes",
       ".gitignore",
       ".project-to-act/**"
     ],
@@ -26,7 +27,8 @@
     "源码包只来自已提交 Git HEAD",
     "交接包不得包含密钥、本地项目注册表、node_modules、.next 或 Git 工作区脏改动",
     "每个二进制工件必须提供 SHA-256 与字节数",
-    "Git Bundle 必须通过 git bundle verify"
+    "Git Bundle 必须通过 git bundle verify",
+    "跨平台 clone 后文本文件必须保持 LF，使格式门禁可复现"
   ],
   "authoritativeContext": [
     "AGENTS.md",
@@ -45,7 +47,7 @@
     "打包命令生成源码 ZIP、Git Bundle、README-HANDOFF、manifest 和 SHA256SUMS",
     "ZIP 可解压且包含 package.json、README.md、docs/HANDOFF.md 和 src/，不含敏感或构建目录",
     "Git Bundle 可验证并可在空目录克隆",
-    "恢复出的源码可完成 npm ci、测试与生产构建"
+    "恢复出的源码在 Windows clone 后仍保持 LF，并可完成 npm ci、测试与生产构建"
   ],
   "verification": [
     "npm run verify",

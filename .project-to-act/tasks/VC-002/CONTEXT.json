@@ -29,14 +29,14 @@
     },
     {
       "path": ".project-to-act/tasks/VC-002/TASK.json",
-      "sha256": "6c66fa29d72ffd662f3cfafafe79f20b64fc8f04ae40cdc2dbf25e26967f57bb",
-      "bytes": 2685,
+      "sha256": "db50c0a6eb3e5c654649714c0102b8e1e62552bf18282584fc6fd9c43f5117ee",
+      "bytes": 2829,
       "normalization": "utf8-lf"
     },
     {
       "path": ".project-to-act/tasks/VC-002/INTENT.json",
-      "sha256": "1b1e9a8dc7eeb1b68b8e9709b48600fa47c386e12d3708227eecec501c63593e",
-      "bytes": 355,
+      "sha256": "172d897cc615710169dc98c4f70e67efdabfad5c85351116677e628d77f7755d",
+      "bytes": 405,
       "normalization": "utf8-lf"
     },
     {
@@ -58,6 +58,6 @@
       "normalization": "utf8-lf"
     }
   ],
-  "createdAt": "2026-08-02T15:41:30.103Z",
-  "contextHash": "cbc095079c47895ecc49dd1ae3bcd85eb7950cb7edc0ee5b19a0d4b3cda0d42c"
+  "createdAt": "2026-08-02T15:43:09.499Z",
+  "contextHash": "7ef786a218fca8e12945777c07af435e21d57fdb19113d2a29a7b0f0da3de0ce"
 }
