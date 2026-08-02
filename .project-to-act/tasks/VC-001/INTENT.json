@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-001",
+  "revision": 0,
+  "baseSha": "UNAVAILABLE",
+  "paths": [
+    "src/**",
+    "skills/project-to-act-collaboration/**",
+    "plugins/project-to-act-collaboration/**",
+    "scripts/**",
+    "tests/**",
+    ".project-to-act/**",
+    ".github/**",
+    "*.json",
+    "*.md",
+    "*.ts",
+    "*.mjs"
+  ],
+  "symbols": ["buildCollaborationOverview", "listProjects", "ProjectDashboard", "project-to-act-collaboration"],
+  "contractsWrite": [
+    "VibeCollab registry v1",
+    "VibeCollab read-only overview API v1",
+    "standalone Project-to-Act distribution v1"
+  ],
+  "migrations": false
+}

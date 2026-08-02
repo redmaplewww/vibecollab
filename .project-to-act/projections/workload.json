@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-02T15:23:14.807Z",
+  "semantics": {
+    "elapsedSeconds": "tracked session elapsed time; not focused work time",
+    "verifiedGit": "change volume; not value or performance",
+    "toolReported": "optional executor-provided data; may be incomplete"
+  },
+  "totals": {
+    "sessions": 1,
+    "completed": 1,
+    "active": 0,
+    "elapsedSeconds": 900,
+    "tasks": ["VC-001"],
+    "verifiedGit": {
+      "sessions": 0,
+      "commits": 0,
+      "files": 0,
+      "additions": 0,
+      "deletions": 0
+    },
+    "toolReported": {
+      "sessions": 1,
+      "reportedSessions": {
+        "tokensIn": 0,
+        "tokensOut": 0,
+        "costUsd": 0,
+        "testsPassed": 1,
+        "testsFailed": 1
+      },
+      "tokensIn": null,
+      "tokensOut": null,
+      "costUsd": null,
+      "testsPassed": 4,
+      "testsFailed": 0
+    }
+  },
+  "byActor": {
+    "codex": {
+      "sessions": 1,
+      "completed": 1,
+      "active": 0,
+      "elapsedSeconds": 900,
+      "tasks": ["VC-001"],
+      "verifiedGit": {
+        "sessions": 0,
+        "commits": 0,
+        "files": 0,
+        "additions": 0,
+        "deletions": 0
+      },
+      "toolReported": {
+        "sessions": 1,
+        "reportedSessions": {
+          "tokensIn": 0,
+          "tokensOut": 0,
+          "costUsd": 0,
+          "testsPassed": 1,
+          "testsFailed": 1
+        },
+        "tokensIn": null,
+        "tokensOut": null,
+        "costUsd": null,
+        "testsPassed": 4,
+        "testsFailed": 0
+      }
+    }
+  },
+  "byExecutor": {
+    "codex": {
+      "sessions": 1,
+      "completed": 1,
+      "active": 0,
+      "elapsedSeconds": 900,
+      "tasks": ["VC-001"],
+      "verifiedGit": {
+        "sessions": 0,
+        "commits": 0,
+        "files": 0,
+        "additions": 0,
+        "deletions": 0
+      },
+      "toolReported": {
+        "sessions": 1,
+        "reportedSessions": {
+          "tokensIn": 0,
+          "tokensOut": 0,
+          "costUsd": 0,
+          "testsPassed": 1,
+          "testsFailed": 1
+        },
+        "tokensIn": null,
+        "tokensOut": null,
+        "costUsd": null,
+        "testsPassed": 4,
+        "testsFailed": 0
+      }
+    }
+  },
+  "taskEvents": {
+    "state-transition": 3,
+    "session-start": 1,
+    "checkpoint": 1,
+    "session-stop": 1
+  },
+  "sessions": [
+    {
+      "schemaVersion": 1,
+      "sessionId": "s-c2106013-7cf0-4fb3-ada9-c67915fe30ae",
+      "taskId": "VC-001",
+      "actorId": "codex",
+      "executor": "codex",
+      "executorVersion": null,
+      "model": null,
+      "source": "cli-tracked",
+      "status": "completed",
+      "startedAt": "2026-08-02T15:08:07.827Z",
+      "endedAt": "2026-08-02T15:23:07.818Z",
+      "elapsedSeconds": 900,
+      "gitStart": {
+        "available": false,
+        "reason": "git-unavailable"
+      },
+      "gitMetrics": {
+        "available": false,
+        "reason": "git-unavailable"
+      },
+      "toolReported": {
+        "source": "tool-reported",
+        "tokensIn": null,
+        "tokensOut": null,
+        "costUsd": null,
+        "testsPassed": 4,
+        "testsFailed": 0
+      },
+      "summary": "VibeCollab standalone v0.1.0 verified: 4 tests, production build, skill/adapters, thin installer, 0 vulnerabilities and live AgentLoop monitoring",
+      "presence": "ended",
+      "heartbeatAt": null,
+      "heartbeatAgeSeconds": null,
+      "heartbeatStale": false
+    }
+  ]
+}

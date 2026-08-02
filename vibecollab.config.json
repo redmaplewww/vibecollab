@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "projects": [
+    {
+      "id": "demo",
+      "name": "VibeCollab 自身",
+      "root": "."
+    }
+  ]
+}

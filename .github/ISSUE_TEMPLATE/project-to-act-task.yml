@@ -1,0 +1,25 @@
+name: Project-to-Act task mirror
+description: Discuss a repository-backed task without creating a second specification
+title: "[TASK-ID] "
+body:
+  - type: input
+    id: task-id
+    attributes:
+      label: Task ID
+      placeholder: AL-042
+    validations:
+      required: true
+  - type: input
+    id: task-path
+    attributes:
+      label: Canonical task path
+      description: Link to .project-to-act/tasks/<ID>/TASK.json
+    validations:
+      required: true
+  - type: textarea
+    id: discussion
+    attributes:
+      label: Discussion or decision request
+      description: Approved specification changes must be written back to the task directory.
+    validations:
+      required: true

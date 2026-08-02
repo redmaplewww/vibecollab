@@ -1,0 +1,27 @@
+{
+  "name": "project-to-act-collaboration",
+  "version": "0.1.0+codex.20260802114849",
+  "description": "Optional Codex adapter for the vendor-neutral Project-to-Act repository collaboration Skill.",
+  "author": {
+    "name": "redmaplewww",
+    "url": "https://github.com/redmaplewww"
+  },
+  "homepage": "https://github.com/redmaplewww/project-to-act",
+  "repository": "https://github.com/redmaplewww/project-to-act",
+  "keywords": ["ai-collaboration", "project-to-act", "git", "worktree", "task-contract"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Project-to-Act Collaboration",
+    "shortDescription": "Optional Codex adapter for tool-neutral repository coordination.",
+    "longDescription": "Loads the same repository-backed task, context, intent and workload protocol used by humans, Cursor, Claude Code, Copilot and other executors. Codex is an optional adapter, not the protocol runtime.",
+    "developerName": "redmaplewww",
+    "category": "Productivity",
+    "capabilities": ["Write", "Automation"],
+    "websiteURL": "https://github.com/redmaplewww/project-to-act",
+    "defaultPrompt": [
+      "Initialize AI collaboration in this repository.",
+      "Create and start a repository-backed task.",
+      "Check active AI tasks for context drift or conflicts."
+    ]
+  }
+}

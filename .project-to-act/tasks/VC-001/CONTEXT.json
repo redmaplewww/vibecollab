@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-001",
+  "baseSha": "UNAVAILABLE",
+  "inputs": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "4f01139ece8b8e161635412b6549ab449835ab6f4cb6fca4f8e9e6e601246e16",
+      "bytes": 2423,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/PROJECT_OVERVIEW.md",
+      "sha256": "043ca142bf8134bca5b3bb6af3cdfd43560275a11100f4725465586794b5e6e8",
+      "bytes": 3066,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/COLLABORATION_CONFIG.json",
+      "sha256": "5dee6b22c829fe7e01fb5b8491a69853498d6c24aa785c758763042c92b85fcd",
+      "bytes": 543,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/skill/SKILL.md",
+      "sha256": "21fce23c893b8bdf2bb0adf5209407225a1a4890e5a9d641d28724e92eeda633",
+      "bytes": 3231,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/tasks/VC-001/TASK.json",
+      "sha256": "cd6fba3c9a1ec0aab1c9d0498b1dbbcd543906997508e735c68c5882c417b22a",
+      "bytes": 3759,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/tasks/VC-001/INTENT.json",
+      "sha256": "e191d2dc2d56f278cd28ef3abc124e2a04568dec439082af57ad66943c57a71e",
+      "bytes": 630,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": "skills/project-to-act-collaboration/SKILL.md",
+      "sha256": "21fce23c893b8bdf2bb0adf5209407225a1a4890e5a9d641d28724e92eeda633",
+      "bytes": 3231,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": "skills/project-to-act-collaboration/references/protocol.md",
+      "sha256": "ae0a182530e0cfa18fe43a33ce2dc2940e37453cf2fda5fe90503fb7df0903e1",
+      "bytes": 3363,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": "skills/project-to-act-collaboration/references/monitoring.md",
+      "sha256": "bd425950cf73754f9ede3f188dbc46342ecc1c28a8edcb3a23dfe2ce65150988",
+      "bytes": 2225,
+      "normalization": "utf8-lf"
+    }
+  ],
+  "createdAt": "2026-08-02T15:22:11.420Z",
+  "contextHash": "e129b797a0e4815a6c3079551baffd22927d93447c48e4a43177af8f56267949"
+}

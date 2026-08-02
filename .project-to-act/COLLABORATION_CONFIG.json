@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "taskStore": ".project-to-act/tasks",
+  "contractStore": ".project-to-act/contracts",
+  "projectionStore": ".project-to-act/projections",
+  "telemetryStore": ".project-to-act/telemetry",
+  "runtimeStore": ".project-to-act/runtime",
+  "github": {
+    "mode": "mirror"
+  },
+  "context": {
+    "algorithm": "sha256",
+    "requireFreshForActiveTasks": true
+  },
+  "telemetry": {
+    "schemaVersion": 1,
+    "heartbeatStaleSeconds": 180,
+    "prohibitPromptContent": true,
+    "metricsAreNotPerformanceScores": true
+  }
+}

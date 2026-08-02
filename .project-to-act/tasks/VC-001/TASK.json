@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-001",
+  "title": "Extract standalone Vibe Coding collaboration platform",
+  "owner": "codex",
+  "goal": "交付一个完全独立于任何业务应用的团队 Vibe Coding 协作平台，可注册多个本地/GitHub 工作仓库并统一监控功能、任务、AI 会话、上下文冲突和 Git 修改。",
+  "reason": "先前把协作控制台实现到 AgentLoop 业务仓库，导致通用 Skill、平台 UI 与业务认证/导航耦合；用户明确要求分离为独立系统。",
+  "currentBehavior": "通用 Project-to-Act Skill 已存在，但控制台路由、API、样式和运行端口寄生在 AgentLoop 应用中。",
+  "expectedBehavior": "VibeCollab 拥有独立仓库、依赖、端口、认证、项目注册表、只读 API、控制台、Skill 和可选插件；目标仓库只安装轻量协议文件。",
+  "scope": {
+    "allowed": [
+      "src/**",
+      "skills/project-to-act-collaboration/**",
+      "plugins/project-to-act-collaboration/**",
+      "scripts/**",
+      "tests/**",
+      ".github/**",
+      ".project-to-act/**",
+      "AGENTS.md",
+      "README.md",
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json",
+      "next-env.d.ts",
+      "next.config.ts",
+      "eslint.config.mjs",
+      "vitest.config.ts",
+      "vibecollab.config.json",
+      ".env.example",
+      ".gitignore",
+      ".prettierignore",
+      ".prettierrc.json"
+    ],
+    "nonGoals": [
+      "执行或复制被观察仓库的源码",
+      "在网页中自动合并、部署或绕过 CI",
+      "用代码量、token 或在线时长进行个人绩效排名",
+      "本版本实现 GitHub SaaS 托管、组织计费或秒级跨机器 presence"
+    ]
+  },
+  "invariants": [
+    "平台实现不得依赖 AgentLoop 或任一被观察业务应用",
+    "目标仓库必须通过 allowlisted registry 解析且始终视为不可信输入",
+    "监控路径只读，不执行被观察源码，不修改其 Git 状态",
+    "生产环境没有管理员令牌时失败关闭",
+    "不可用指标保持 null/unavailable，不伪装为零",
+    "Skill 是权威实现，Codex 插件只是可选适配器"
+  ],
+  "authoritativeContext": [
+    "AGENTS.md",
+    "skills/project-to-act-collaboration/SKILL.md",
+    "skills/project-to-act-collaboration/references/protocol.md",
+    "skills/project-to-act-collaboration/references/monitoring.md"
+  ],
+  "dependencies": [],
+  "contracts": {
+    "read": ["Project-to-Act repository protocol v1", "Git read-only facts"],
+    "write": ["VibeCollab project registry v1", "VibeCollab overview API v1", "VibeCollab standalone UI v1"]
+  },
+  "acceptance": [
+    "Given VibeCollab starts, then it runs on its own port and presents its own product identity without AgentLoop dependencies",
+    "Given an allowlisted initialized repository, then its function/task/session/context/Git facts render in the dashboard",
+    "Given an unknown project id or uninitialized root, then access fails without reading arbitrary paths",
+    "Given production mode without a configured admin token, then pages and APIs fail closed",
+    "Given a target repository, then the bundled installer adds only portable protocol/Skill/CI files and no dashboard application",
+    "Given canonical Skill changes, then optional plugin adapter drift is detected"
+  ],
+  "verification": [
+    "npm run adapters:check",
+    "npm run verify",
+    "node skills/project-to-act-collaboration/scripts/pta.mjs validate --project-root . --ci",
+    "manual desktop/mobile dashboard inspection"
+  ],
+  "baseSha": "UNAVAILABLE",
+  "gitBaseline": {
+    "clean": false,
+    "statusHash": "06e020050ee010c1abc359073fa18f5863d03c39fe42935d912f7700dcdcd361"
+  },
+  "createdAt": "2026-08-02T15:06:53.856Z"
+}

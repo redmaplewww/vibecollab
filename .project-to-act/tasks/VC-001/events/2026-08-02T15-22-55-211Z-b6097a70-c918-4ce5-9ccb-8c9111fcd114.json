@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "eventId": "4b9a4b9b-1513-4dd5-93f8-28570fd866fc",
+  "taskId": "VC-001",
+  "type": "checkpoint",
+  "timestamp": "2026-08-02T15:22:55.211Z",
+  "summary": "Standalone control plane, thin installer, real AgentLoop read path and repository boundary cleanup verified",
+  "metrics": {
+    "available": false
+  },
+  "revision": 5
+}

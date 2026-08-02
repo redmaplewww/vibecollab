@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "E-VC-001-001",
+  "taskId": "VC-001",
+  "recordedAt": "2026-08-02T15:24:00.000Z",
+  "summary": "VibeCollab was extracted into an independent repository and validated against a real AgentLoop installation.",
+  "checks": [
+    { "name": "unit-tests", "result": "passed", "detail": "4/4 tests" },
+    { "name": "type-lint-build", "result": "passed", "detail": "Next.js production build completed" },
+    { "name": "dependency-audit", "result": "passed", "detail": "0 known vulnerabilities" },
+    { "name": "skill-validation", "result": "passed", "detail": "canonical Skill valid and adapters synchronized" },
+    {
+      "name": "thin-installer-fixture",
+      "result": "passed",
+      "detail": "target received protocol files only; no src or app directory"
+    },
+    {
+      "name": "real-repository-browser-smoke",
+      "result": "passed",
+      "detail": "AgentLoop features, tasks, sessions, context and Git facts rendered at port 3210"
+    },
+    {
+      "name": "agentloop-boundary-cleanup",
+      "result": "passed",
+      "detail": "embedded collaboration route, API, navigation, styles and task artifacts removed; worktree clean"
+    }
+  ],
+  "limitations": [
+    "No independent GitHub remote is configured yet.",
+    "Mobile responsive layout is implemented but current browser control session did not expose viewport resizing."
+  ]
+}

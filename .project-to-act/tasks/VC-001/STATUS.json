@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-001",
+  "state": "done",
+  "revision": 8,
+  "owner": "codex",
+  "branch": "codex/vc-001-standalone-platform",
+  "contextHash": "e129b797a0e4815a6c3079551baffd22927d93447c48e4a43177af8f56267949",
+  "updatedAt": "2026-08-02T15:23:14.222Z",
+  "lastCheckpoint": "4b9a4b9b-1513-4dd5-93f8-28570fd866fc",
+  "activeSessionId": null,
+  "headSha": null
+}
