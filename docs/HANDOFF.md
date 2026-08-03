@@ -1,8 +1,8 @@
-# VibeCollab v0.1.0 交接说明
+# VibeCollab 交接说明
 
 ## 1. 交接结论
 
-VibeCollab 已作为独立项目完成本地 v0.1.0 基线。平台不再嵌入 AgentLoop；AgentLoop 仅保留 vendored `.project-to-act` 接入事实。当前控制台可读取真实 AgentLoop 仓库的功能、任务、会话、上下文和 Git 状态。
+VibeCollab 已作为独立项目完成 v0.2.0 本地验收。平台不嵌入 AgentLoop；业务仓库只保留 vendored `.project-to-act`。当前主流程是两个人在同一 Task 上顺序接力，复杂监控保留为二级详情。
 
 交接包由已提交 Git HEAD 生成。精确提交、分支、文件大小和 SHA-256 以包内 `PACKAGE-MANIFEST.json` 为准，不依赖本说明中的静态文本。
 
@@ -59,6 +59,9 @@ npm run dev
 - 本地开发访问和生产管理员令牌：完成。
 - 未注册项目 404、不可用项目 503：完成。
 - 工具无关 Skill 和零依赖 CLI：完成。
+- `handoff publish/accept`、四项一致性门禁与唯一写入者：完成。
+- 受限 fetch、fast-forward、任务事实提交与非强制 push：完成。
+- 双按钮 Web 接力台和 AI 续写提示：完成。
 - Codex 可选插件与权威 Skill 漂移检查：完成。
 - 空仓库薄安装：完成并验证没有复制平台源码。
 - 独立 GitHub remote、Release、GitHub App：未配置。
@@ -69,7 +72,7 @@ npm run dev
 v0.1.0 已通过：
 
 - Prettier、ESLint 和 TypeScript。
-- 4 项访问与项目聚合单元测试。
+- 5 项访问、项目聚合与双 clone 接力测试。
 - Next.js 生产构建。
 - Skill 格式校验和插件适配器一致性检查。
 - Project-to-Act `validate --ci`。

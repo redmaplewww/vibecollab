@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, FolderGit2, GitBranch, ShieldCheck } from "lucide-react";
+import { ArrowRight, ArrowUpRight, FolderGit2, GitBranch, ShieldCheck } from "lucide-react";
 import { requirePageAccess } from "@/lib/access";
 import { listProjects } from "@/lib/project-registry";
 
@@ -11,31 +11,34 @@ export default async function HomePage() {
   return (
     <div className="shell home-page">
       <header className="hero">
-        <p className="eyebrow">TEAM VIBE CODING · SHARED CONTEXT</p>
-        <h1>仓库保存共识，AI 只负责执行。</h1>
-        <p>独立观察多个代码库中的功能、任务、人员与 AI 会话、上下文风险和 Git 修改，不侵入任何业务应用。</p>
+        <p className="eyebrow">ONE TASK · TWO DEVELOPERS · ONE CONTEXT</p>
+        <h1>一个人停下，另一个人从同一处继续。</h1>
+        <p>
+          把同一个 Task 的代码版本、功能进度、实现决策和 AI
+          上下文一起交接。无需共享聊天记录，也不会让两个人同时改乱代码。
+        </p>
       </header>
       <section className="principles" aria-label="协作原则">
         <div>
           <span>01</span>
-          <strong>任务契约统一思路</strong>
-          <small>goal · scope · invariants · acceptance</small>
+          <strong>A 发布完整进度</strong>
+          <small>完成项 · 待办 · 决策 · 下一步</small>
         </div>
         <div>
           <span>02</span>
-          <strong>Intent 阻止并发改乱</strong>
-          <small>paths · symbols · contracts · migrations</small>
+          <strong>四项一致才能接管</strong>
+          <small>code · revision · context · verification</small>
         </div>
         <div>
           <span>03</span>
-          <strong>Git 与 CI 裁决结果</strong>
-          <small>worktree · review · checks · evidence</small>
+          <strong>B 接管同一 Task</strong>
+          <small>one branch · one writer · any AI</small>
         </div>
       </section>
       <div className="section-heading">
         <div>
           <p className="eyebrow">REGISTERED REPOSITORIES</p>
-          <h2>项目控制面</h2>
+          <h2>选择要接力的项目</h2>
         </div>
         <span>{projects.length} PROJECTS</span>
       </div>
@@ -53,7 +56,8 @@ export default async function HomePage() {
             <ArrowUpRight size={17} />
             <footer>
               <GitBranch size={12} />
-              读取 Project-to-Act 与 Git
+              打开当前 Task 接力台
+              <ArrowRight size={11} />
             </footer>
           </Link>
         ))}

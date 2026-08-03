@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-003",
+  "baseSha": "9d33205dc679ba3c87f3a0dbc7d86b2dcdcffb62",
+  "inputs": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "6531694c3686b27428eb88de4b722257c6258dd1b2de92bcb0d4a5f747d2385a",
+      "bytes": 2900,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/PROJECT_OVERVIEW.md",
+      "sha256": "04fcb49b7e01fd2ea38e8bd99389587ec87c3d1134ed6c4da266a99dba7a3ab4",
+      "bytes": 3977,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/COLLABORATION_CONFIG.json",
+      "sha256": "5dee6b22c829fe7e01fb5b8491a69853498d6c24aa785c758763042c92b85fcd",
+      "bytes": 543,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/skill/SKILL.md",
+      "sha256": "ef4702dd4e6d7ba67526aa91b691884df7e1416bccf95e28f0eb75db63efe464",
+      "bytes": 4043,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/tasks/VC-003/TASK.json",
+      "sha256": "937776e9c01b97f9f2c25af8c02bd4f607a5e1395e1d9ac56955dcaf234b346e",
+      "bytes": 3358,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/tasks/VC-003/INTENT.json",
+      "sha256": "314d972356e8e80f8f585e5bc82cf7f8ced7aa0847ff663c7d311904d1c81078",
+      "bytes": 831,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "sha256": "dce1c8754d02b5a6bdf8bc34447f446e5d11de530d7712237eac76780d61ef07",
+      "bytes": 4134,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": "skills/project-to-act-collaboration/references/protocol.md",
+      "sha256": "4965cef8b1ef16222f2b00677c2a8e2315ffdba882f8b5ba2a4ee32656887ccc",
+      "bytes": 4310,
+      "normalization": "utf8-lf"
+    }
+  ],
+  "createdAt": "2026-08-03T10:35:16.092Z",
+  "contextHash": "31d222c7e4338fd3eb9228ad3b82556ea5a5ae116e0a22928edfb210a5d9a4ee"
+}

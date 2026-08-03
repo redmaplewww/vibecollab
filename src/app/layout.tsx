@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: { default: "VibeCollab", template: "%s · VibeCollab" },
-  description: "Repository-native team Vibe Coding collaboration control plane.",
+  description: "Verified sequential handoff for one repository task across people and AI tools.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -21,7 +21,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             </span>
             <span>
               <strong>VibeCollab</strong>
-              <small>REPOSITORY CONTROL PLANE</small>
+              <small>SEQUENTIAL HANDOFF</small>
             </span>
           </Link>
           <nav aria-label="主导航">
@@ -35,7 +35,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             </a>
             <span>
               <ShieldCheck size={14} />
-              READ ONLY
+              SYNC GUARDED
             </span>
           </nav>
         </header>

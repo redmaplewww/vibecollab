@@ -1,22 +1,26 @@
 # VibeCollab
 
-VibeCollab 是一个独立的团队 Vibe Coding 协作控制面。它不替团队成员和 AI 写业务决策，而是让所有执行端读取同一套仓库事实，并用任务契约、上下文哈希、修改意图、Git 隔离和验收证据约束实现结果。
+VibeCollab 是一个独立的单任务接力协作系统。两个人轮流开发同一个 Task：A 发布代码与进度，B 校验并接管完全相同的功能上下文，然后使用任意 AI 继续工作。
 
 > 仓库是共享大脑，任务规格是工作指令，Git 是并发控制，CI 是最终裁判。
 
-VibeCollab 不嵌入被观察的业务应用。每个业务仓库只安装可移植的 `.project-to-act` 协议文件；独立控制台通过 allowlist 以只读方式构建功能、任务、会话、风险和 Git 进度视图。
+VibeCollab 不嵌入业务应用。每个业务仓库只安装可移植的 `.project-to-act` 协议；独立控制台从 allowlist 读取项目，并且只通过受限的交接接口执行 fetch、fast-forward、任务事实提交和非强制 push。
 
 ## 当前版本
 
-- 版本：`0.1.0`
+- 版本：`0.2.0`
 - 状态：本地可用，尚未发布远程包
 - 默认地址：`http://127.0.0.1:3210`
 - 运行时：Node.js 20+、Git
 - 技术栈：Next.js 16、React 19、TypeScript、Zod
-- 数据来源：本地 Git 仓库中的 `.project-to-act` 与只读 Git 元数据
+- 数据来源：本地 Git 仓库中的 `.project-to-act`、Git 元数据与受限交接动作
 
 ## 核心能力
 
+- 在同一个 Task 和任务分支上执行 A → B → A 的顺序接力。
+- `handoff publish` 一次固化完成项、待办、实现决策、下一步和验证状态。
+- `handoff accept` 同时校验代码 SHA、Task revision、Context hash 和验证状态。
+- 接收成功后自动建立唯一写入者会话，并生成可交给任意 AI 的续写指令。
 - 注册并观察多个本地代码仓库。
 - 统一展示功能状态、任务契约、负责人、AI 执行端和工作会话。
 - 检测活动任务的路径、符号、公共契约和迁移意图冲突。
@@ -30,15 +34,14 @@ VibeCollab 不嵌入被观察的业务应用。每个业务仓库只安装可移
 
 ```mermaid
 flowchart LR
-  H["人员与任意 AI 工具"] --> T["Task Contract + Intent"]
-  T --> R["业务仓库 .project-to-act"]
-  R --> G["Git / Worktree / CI"]
-  R --> V["VibeCollab 只读控制面"]
-  G --> V
-  V --> D["功能、任务、会话、风险、代码进度"]
+  A["A + 任意 AI"] --> P["发布 HANDOFF"]
+  P --> G["同一 Git 任务分支"]
+  G --> C["四项一致性校验"]
+  C --> B["B + 任意 AI 继续同一 Task"]
+  G --> V["VibeCollab 接力台"]
 ```
 
-VibeCollab 不执行被观察仓库的源码，不修改其 Git 状态，不自动合并 PR，也不部署生产环境。完整架构见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。
+VibeCollab 不执行被观察仓库的源码，不运行任意用户命令，不自动合并 PR，也不部署生产环境。完整架构见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。
 
 ## 快速启动
 
@@ -125,7 +128,11 @@ node skills/project-to-act-collaboration/scripts/pta.mjs init `
 
 目标仓库不会收到 VibeCollab 的 `src/`、控制台、认证或产品依赖。升级受管协议文件时显式增加 `--upgrade`，账本与任务事实不会被覆盖。
 
-## 团队任务工作流
+## 两个人接力同一个 Task
+
+双方各自 clone 同一个 GitHub 仓库，并切换到同一个任务分支。任一时刻只有一个人拥有写入权。
+
+### A 开始并开发
 
 ```powershell
 # 创建任务
@@ -140,15 +147,45 @@ npm run pta -- task transition APP-101 --state in_progress --expected-revision 1
 # 人工、Cursor、Claude Code、Codex、Copilot 等使用同一会话协议
 npm run pta -- session start APP-101 --actor alice --executor cursor --expected-revision 2
 
-# 交接或完成前记录 checkpoint、停止会话并验证
-npm run pta -- checkpoint APP-101 --summary "API complete" --expected-revision 3
-npm run pta -- session stop <SESSION-ID> --summary "Tests passed" --expected-revision 4
-npm run pta -- validate --ci
+# A 提交业务代码并运行 TASK.json 约定的检查，然后发布给 B
+git add <业务文件>
+git commit -m "feat: complete agent foundation"
+
+npm run pta -- handoff publish APP-101 `
+  --from alice `
+  --to bob `
+  --summary "Agent 基础能力已经完成" `
+  --completed "Agent contract;基础实现" `
+  --pending "工具路由" `
+  --decisions "保持单一 Agent 导出" `
+  --next-action "实现工具路由" `
+  --verification passed `
+  --checks "npm test;npm run build" `
+  --expected-revision 3 `
+  --push
 ```
 
-给任何 AI 的推荐指令：
+发布会停止 A 的会话、释放写入权、提交交接事实并推送同一任务分支。业务代码必须由 A 先明确提交，VibeCollab 不会偷偷暂存业务文件。
 
-> 读取 `AGENTS.md` 和 `.project-to-act/tasks/<ID>/`，验证上下文与修改意图，先探索当前实现并给出计划；只实现任务范围，保持列出的不变量；运行任务指定检查；报告改动、验证证据、遗留风险和规格偏差。
+### B 接收并继续
+
+```powershell
+git switch task/app-101
+
+npm run pta -- handoff accept APP-101 `
+  --actor bob `
+  --executor claude-code `
+  --pull `
+  --push
+```
+
+接收只允许 fast-forward。如果 B 有本地修改、目标人不符、代码锚点不可达、revision 不同、上下文漂移或验证未通过，命令会拒绝接管。成功结果中的 `aiPrompt` 可以直接交给 Cursor、Claude Code、Codex、Copilot 或其他 AI。
+
+也可以打开 `http://127.0.0.1:3210`，进入项目后使用“发布进度”和“接收进度”两个按钮完成相同流程。
+
+给任何 AI 的最短指令：
+
+> 读取 `AGENTS.md`、Task `<ID>` 和最新 `HANDOFF.json`；确认分支、代码锚点、Task revision 与 Context hash；先总结已完成、未完成和既有决策，再从 `nextAction` 继续，不得重新设计已确认部分。
 
 同一任务同时只有一个写入负责人。公共 Schema、迁移、认证、权限、支付/积分和状态机必须先确定唯一契约负责人；消费者等待契约合并后再并行。
 
@@ -169,6 +206,7 @@ npm run pta -- validate --ci
 | `/`                           | GET  | 已注册项目列表                   |
 | `/projects/<id>`              | GET  | 单仓库协作控制台                 |
 | `/api/projects/<id>/overview` | GET  | 版本化只读概览；未知项目返回 404 |
+| `/api/projects/<id>/handoff`  | POST | 受限的发布/接收交接动作          |
 | `/api/session`                | POST | 管理员令牌登录并设置会话 Cookie  |
 | `/login`                      | GET  | 登录页面                         |
 

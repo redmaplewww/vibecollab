@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "eventId": "1be64053-63db-431d-95f5-7c0d48601f0d",
+  "taskId": "VC-003",
+  "type": "checkpoint",
+  "timestamp": "2026-08-03T10:35:27.924Z",
+  "summary": "v0.2 sequential handoff verified",
+  "metrics": {
+    "available": true,
+    "commits": 0,
+    "files": 0,
+    "additions": 0,
+    "deletions": 0,
+    "headSha": "9d33205dc679ba3c87f3a0dbc7d86b2dcdcffb62"
+  },
+  "revision": 8
+}

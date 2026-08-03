@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "E-VC-003-001",
+  "taskId": "VC-003",
+  "checkedAt": "2026-08-03T10:37:39.000Z",
+  "baseHeadSha": "9d33205dc679ba3c87f3a0dbc7d86b2dcdcffb62",
+  "contextHash": "31d222c7e4338fd3eb9228ad3b82556ea5a5ae116e0a22928edfb210a5d9a4ee",
+  "commands": [
+    { "command": "npm.cmd run verify", "exitCode": 0 },
+    { "command": "node .project-to-act/bin/pta.mjs validate --ci", "exitCode": 0 },
+    { "command": "node scripts/sync-adapters.mjs --check", "exitCode": 0 },
+    { "command": "skill-creator quick_validate.py skills/project-to-act-collaboration", "exitCode": 0 },
+    { "command": "real local bare remote + Alice/Bob clone handoff journey", "exitCode": 0 }
+  ],
+  "results": {
+    "tests": "5 passed across 3 test files",
+    "build": "Next.js production build passed with handoff API route",
+    "gitJourney": "Alice published and pushed; Charlie was rejected; Bob fast-forwarded, accepted, pushed, and became the sole active writer",
+    "browser": "Home and project handoff workbench rendered; publish/accept tabs and disabled precondition state verified"
+  },
+  "fileHashes": {
+    "skills/project-to-act-collaboration/scripts/pta.mjs": "0bb032186fff872c4479b9cc24209fd8941e58b94e5ae6ef96b7bedc6d067f9a",
+    "src/lib/handoff-action.ts": "dac66795bf40c9512cf8f82dab240f169c93dbc225a519e8f72cd4de0e163a4b",
+    "src/components/project-dashboard.tsx": "352e6fe8db90d1694c3ecad6e8173650a5473b183cf12b74899f9cc779c2627e",
+    "src/lib/handoff-cli.test.ts": "8f4ab22abe1294e6c202ba989789fa7cda9d6be6cbf33568e22627781c97a3e2"
+  },
+  "limitations": [
+    "Verification is an actor attestation; VibeCollab deliberately does not execute observed repository source",
+    "The current repository has no independent GitHub remote, so remote behavior was verified with a real local bare remote"
+  ]
+}

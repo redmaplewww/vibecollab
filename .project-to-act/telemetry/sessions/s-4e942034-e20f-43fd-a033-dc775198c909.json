@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "sessionId": "s-4e942034-e20f-43fd-a033-dc775198c909",
+  "taskId": "VC-003",
+  "actorId": "codex",
+  "executor": "codex",
+  "executorVersion": null,
+  "model": null,
+  "source": "cli-tracked",
+  "status": "completed",
+  "startedAt": "2026-08-03T10:11:35.518Z",
+  "endedAt": "2026-08-03T10:35:17.063Z",
+  "elapsedSeconds": 1422,
+  "gitStart": {
+    "available": true,
+    "headSha": "9d33205dc679ba3c87f3a0dbc7d86b2dcdcffb62",
+    "clean": false,
+    "statusHash": "dc04f4338969ece0083bfc6531e7688d8902968a94f8c7fc9c8b0c80d9c76bbb"
+  },
+  "gitMetrics": {
+    "available": false,
+    "reason": "dirty-session-start",
+    "startStatusHash": "dc04f4338969ece0083bfc6531e7688d8902968a94f8c7fc9c8b0c80d9c76bbb"
+  },
+  "toolReported": {
+    "source": "tool-reported",
+    "tokensIn": null,
+    "tokensOut": null,
+    "costUsd": null,
+    "testsPassed": 5,
+    "testsFailed": 0
+  },
+  "summary": "Implemented and verified sequential single-task handoff"
+}

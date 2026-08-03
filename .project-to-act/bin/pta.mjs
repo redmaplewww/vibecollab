@@ -165,7 +165,8 @@ const AGENTS_BLOCK = `
 - 所有人和 AI 工具读取 \`.project-to-act/skill/SKILL.md\`；Codex、Cursor、Claude Code、Copilot 等配置只做薄适配，不得维护独立流程。
 - 开始任务前读取 \`TASK.json\`，完成 \`INTENT.json\`，构建上下文，再通过带 revision 的状态转换开始工作。
 - 实际工作使用 \`session start/heartbeat/stop\` 记录统一的 actor、executor 和隐私受控工作量事件；不保存完整提示、思维链或键盘行为。
-- 一个任务一个分支和独立 worktree。公共契约、数据库迁移、认证、支付/积分和状态机必须只有一个写入负责人。
+- 一个任务一个分支；同一任务任一时刻只有一个写入者。换人继续时使用 \`handoff publish/accept\`，以代码 SHA、Task revision、Context hash 和验证状态完成接力。
+- 公共契约、数据库迁移、认证、支付/积分和状态机必须只有一个写入负责人；不同任务并行时才使用独立 worktree。
 - AI 对话和 Memory 不是事实源。决策、范围变化、验证证据和交接必须写回仓库。
 - 提交或交接前运行 \`node .project-to-act/bin/pta.mjs validate --ci\`，不得绕过陈旧上下文、意图冲突或 CI 门禁。
 <!-- project-to-act-collaboration:end -->
@@ -383,6 +384,7 @@ function taskPaths(root, id) {
     intent: resolve(dir, "INTENT.json"),
     context: resolve(dir, "CONTEXT.json"),
     status: resolve(dir, "STATUS.json"),
+    handoffJson: resolve(dir, "HANDOFF.json"),
     handoff: resolve(dir, "HANDOFF.md"),
     events: resolve(dir, "events"),
     evidence: resolve(dir, "evidence"),
@@ -822,6 +824,10 @@ function createTask(root, id, flags) {
     contextHash: null,
     updatedAt: timestamp,
     lastCheckpoint: null,
+    activeSessionId: null,
+    currentActor: null,
+    handoffState: null,
+    handoffId: null,
   };
   writeJson(root, paths.task, task);
   writeJson(root, paths.intent, intent);
@@ -896,6 +902,306 @@ function checkpoint(root, id, flags) {
     writeJson(root, bundle.paths.status, next);
     return { status: next, metrics };
   });
+}
+
+function splitList(value) {
+  return String(value || "")
+    .split(/\s*;\s*/u)
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 100);
+}
+
+function gitFailure(result, action) {
+  const detail = String(result.stderr || result.stdout || "").trim();
+  fail(`${action}失败${detail ? `：${detail}` : ""}`, 5);
+}
+
+function currentBranch(root) {
+  const branch = gitValue(root, ["branch", "--show-current"], "");
+  if (!branch) fail("当前不在命名分支上，无法交接", 3);
+  return branch;
+}
+
+function assertValidBranch(root, branch) {
+  const checked = git(root, ["check-ref-format", "--branch", branch]);
+  if (checked.status !== 0) fail(`无效任务分支：${branch}`, 2);
+}
+
+function protocolChangeAllowed(path, id) {
+  const normalized = normalizeRelative(path.replace(/^.* -> /u, ""));
+  return (
+    normalized.startsWith(`.project-to-act/tasks/${id}/`) ||
+    normalized.startsWith(".project-to-act/telemetry/sessions/")
+  );
+}
+
+function assertNoUncommittedCode(root, id, { protocolChangesAllowed = true } = {}) {
+  const result = git(root, ["status", "--porcelain=v1", "-uall"]);
+  if (result.status !== 0) gitFailure(result, "读取 Git 状态");
+  const dirty = result.stdout
+    .split(/\r?\n/u)
+    .filter(Boolean)
+    .map((line) => line.slice(3))
+    .filter((path) => !protocolChangesAllowed || !protocolChangeAllowed(path, id));
+  if (dirty.length)
+    fail(`存在未提交代码，交接前请先提交：${dirty.slice(0, 8).join(", ")}${dirty.length > 8 ? "…" : ""}`, 3);
+}
+
+function ensureTaskBranch(root, bundle, override = null) {
+  const branch = String(override || bundle.status.branch || "").trim();
+  if (!branch) fail("任务缺少 STATUS.branch", 3);
+  assertValidBranch(root, branch);
+  const actual = currentBranch(root);
+  if (actual !== branch) fail(`当前分支 ${actual} 与任务分支 ${branch} 不一致`, 3);
+  return branch;
+}
+
+function commitAndPushFacts(root, bundle, branch, message, extraPaths = []) {
+  const relativeTask = normalizeRelative(relative(root, bundle.paths.dir));
+  const stagePaths = [...new Set([relativeTask, ...extraPaths.map(normalizeRelative)])];
+  const add = git(root, ["add", "--", ...stagePaths]);
+  if (add.status !== 0) gitFailure(add, "暂存交接事实");
+  const staged = git(root, ["diff", "--cached", "--quiet"]);
+  if (staged.status === 1) {
+    const commit = git(root, ["commit", "-m", message]);
+    if (commit.status !== 0) gitFailure(commit, "提交交接事实");
+  } else if (staged.status !== 0) gitFailure(staged, "检查交接提交");
+  const push = git(root, ["push", "-u", "origin", `HEAD:refs/heads/${branch}`]);
+  if (push.status !== 0) gitFailure(push, "推送任务分支");
+  return {
+    pushed: true,
+    branch,
+    headSha: gitValue(root, ["rev-parse", "HEAD"]),
+    remoteHeadSha: gitValue(root, ["rev-parse", `refs/remotes/origin/${branch}`]),
+  };
+}
+
+function handoffPrompt(handoff) {
+  const expectedRevision = handoff.acceptedRevision || handoff.taskRevision;
+  return [
+    `读取 AGENTS.md、.project-to-act/tasks/${handoff.taskId}/TASK.json 和最新 HANDOFF.json。`,
+    `确认当前分支为 ${handoff.branch}，代码锚点 ${handoff.codeSha} 可达，Task revision=${expectedRevision}，Context hash=${handoff.contextHash}。`,
+    `先总结已完成内容、未完成内容和既有决策，再从下一步“${handoff.nextAction}”继续；不得重新设计已经确认的部分。`,
+  ].join(" ");
+}
+
+function renderHandoff(handoff) {
+  const lines = [
+    `# ${handoff.taskId} Handoff`,
+    "",
+    `- State: ${handoff.state}`,
+    `- From: ${handoff.from}`,
+    `- To: ${handoff.to}`,
+    `- Branch: \`${handoff.branch}\``,
+    `- Code SHA: \`${handoff.codeSha}\``,
+    `- Task revision: ${handoff.taskRevision}`,
+    `- Context hash: \`${handoff.contextHash}\``,
+    `- Verification: ${handoff.verification.status}`,
+    "",
+    "## Current result",
+    "",
+    handoff.summary,
+    "",
+    "## Completed",
+    "",
+    ...(handoff.completed.length ? handoff.completed.map((item) => `- ${item}`) : ["- None recorded"]),
+    "",
+    "## Pending",
+    "",
+    ...(handoff.pending.length ? handoff.pending.map((item) => `- ${item}`) : ["- None recorded"]),
+    "",
+    "## Decisions to preserve",
+    "",
+    ...(handoff.decisions.length ? handoff.decisions.map((item) => `- ${item}`) : ["- None recorded"]),
+    "",
+    "## Next action",
+    "",
+    handoff.nextAction,
+    "",
+    "## AI resume instruction",
+    "",
+    handoffPrompt(handoff),
+    "",
+  ];
+  return `${lines.join("\n")}\n`;
+}
+
+function publishHandoff(root, id, flags) {
+  let bundle = loadTaskBundle(root, id);
+  requireRevision(bundle, flags["expected-revision"]);
+  if (bundle.status.state !== "in_progress") fail("只有 in_progress 任务可以发布进度", 2);
+  const from = identity(flags.from || flags.actor, "from");
+  const to = identity(flags.to || "any", "to");
+  const summary = String(flags.summary || "").trim();
+  const nextAction = String(flags["next-action"] || "").trim();
+  if (!summary || !nextAction) fail("发布进度必须提供 --summary 和 --next-action", 2);
+  if (String(flags.verification || "") !== "passed")
+    fail("验证状态不是 passed，拒绝发布；完成任务约定检查后传入 --verification passed", 3);
+  ensureTaskBranch(root, bundle, flags.branch);
+  assertNoUncommittedCode(root, id);
+  const codeSha = gitValue(root, ["rev-parse", "HEAD"], "");
+  if (!codeSha) fail("无法读取当前 Git commit", 3);
+  const freshness = checkContext(root, id);
+  if (!freshness.fresh) fail(`上下文已过期，拒绝发布：${JSON.stringify(freshness.changed)}`, 3);
+  const stoppedSessionPaths = [];
+  if (bundle.status.activeSessionId) {
+    const active = listSessions(root).find((session) => session.sessionId === bundle.status.activeSessionId);
+    if (!active || active.actorId !== from) fail("当前活动写入者与发布者不一致", 4);
+    const stopped = stopSession(root, bundle.status.activeSessionId, {
+      ...flags,
+      summary,
+      result: "completed",
+      "expected-revision": bundle.status.revision,
+    });
+    stoppedSessionPaths.push(normalizeRelative(relative(root, telemetrySessionPath(root, stopped.session.sessionId))));
+    bundle = loadTaskBundle(root, id);
+  }
+  const result = withTaskLock(root, id, () => {
+    bundle = loadTaskBundle(root, id);
+    const nextRevision = bundle.status.revision + 1;
+    const handoff = {
+      schemaVersion: 1,
+      handoffId: `h-${randomUUID()}`,
+      taskId: id,
+      state: "published",
+      from,
+      to,
+      branch: ensureTaskBranch(root, bundle, flags.branch),
+      codeSha,
+      taskRevision: nextRevision,
+      contextHash: freshness.contextHash,
+      summary,
+      completed: splitList(flags.completed),
+      pending: splitList(flags.pending),
+      decisions: splitList(flags.decisions),
+      nextAction,
+      verification: {
+        status: "passed",
+        source: "actor-attested",
+        checks: splitList(flags.checks),
+      },
+      publishedAt: now(),
+      acceptedBy: null,
+      acceptedAt: null,
+      acceptedRevision: null,
+    };
+    writeJson(root, bundle.paths.handoffJson, handoff);
+    atomicWrite(root, bundle.paths.handoff, renderHandoff(handoff));
+    const next = {
+      ...bundle.status,
+      revision: nextRevision,
+      currentActor: null,
+      activeSessionId: null,
+      handoffState: "published",
+      handoffId: handoff.handoffId,
+      headSha: codeSha,
+      updatedAt: handoff.publishedAt,
+    };
+    writeJson(root, bundle.paths.status, next);
+    appendEvent(root, bundle, "handoff-published", {
+      handoffId: handoff.handoffId,
+      from,
+      to,
+      codeSha,
+      contextHash: handoff.contextHash,
+      revision: nextRevision,
+    });
+    return { handoff, status: next };
+  });
+  const sync = flags.push
+    ? commitAndPushFacts(
+        root,
+        bundle,
+        result.handoff.branch,
+        `chore(${id.toLowerCase()}): publish handoff to ${to}`,
+        stoppedSessionPaths,
+      )
+    : { pushed: false, reason: "--push not requested" };
+  return { ...result, sync, aiPrompt: handoffPrompt(result.handoff) };
+}
+
+function pullTaskBranch(root, branch) {
+  assertValidBranch(root, branch);
+  const fetch = git(root, ["fetch", "origin", `refs/heads/${branch}`]);
+  if (fetch.status !== 0) gitFailure(fetch, "获取远程任务分支");
+  const merge = git(root, ["merge", "--ff-only", "FETCH_HEAD"]);
+  if (merge.status !== 0) gitFailure(merge, "快进任务分支");
+}
+
+function acceptHandoff(root, id, flags) {
+  let bundle = loadTaskBundle(root, id);
+  const actor = identity(flags.actor, "actor");
+  const executor = identity(flags.executor || "human", "executor");
+  const branch = ensureTaskBranch(root, bundle, flags.branch);
+  assertNoUncommittedCode(root, id, { protocolChangesAllowed: false });
+  if (flags.pull) pullTaskBranch(root, branch);
+  bundle = loadTaskBundle(root, id);
+  if (!existsSync(bundle.paths.handoffJson)) fail(`任务 ${id} 没有已发布 HANDOFF.json`, 3);
+  const handoff = readJson(bundle.paths.handoffJson, `${id}/HANDOFF.json`);
+  if (handoff.schemaVersion !== 1 || handoff.taskId !== id || handoff.state !== "published")
+    fail("交接快照不是可接收的 published 状态", 3);
+  if (handoff.to !== "any" && handoff.to !== actor) fail(`交接目标是 ${handoff.to}，不是 ${actor}`, 4);
+  if (handoff.branch !== branch) fail("交接分支与当前任务分支不一致", 3);
+  if (bundle.status.revision !== handoff.taskRevision)
+    fail(`Task revision 不一致：快照 ${handoff.taskRevision}，本地 ${bundle.status.revision}`, 4);
+  if (bundle.status.contextHash !== handoff.contextHash) fail("STATUS 与 HANDOFF 的 Context hash 不一致", 4);
+  if (handoff.verification?.status !== "passed") fail("交接验证状态不是 passed", 3);
+  if (bundle.status.activeSessionId || bundle.status.currentActor) fail("任务已有活动写入者，拒绝重复接管", 4);
+  const ancestor = git(root, ["merge-base", "--is-ancestor", handoff.codeSha, "HEAD"]);
+  if (ancestor.status !== 0) fail(`代码锚点 ${handoff.codeSha} 不在当前分支历史中`, 4);
+  const freshness = checkContext(root, id);
+  if (!freshness.fresh || freshness.contextHash !== handoff.contextHash)
+    fail(`上下文不一致，拒绝接管：${JSON.stringify(freshness.changed)}`, 3);
+  const started = startSession(root, id, {
+    ...flags,
+    actor,
+    executor,
+    "expected-revision": handoff.taskRevision,
+    "handoff-id": handoff.handoffId,
+  });
+  const accepted = withTaskLock(root, id, () => {
+    const current = loadTaskBundle(root, id);
+    requireRevision(current, started.status.revision);
+    const acceptedAt = now();
+    const nextHandoff = {
+      ...handoff,
+      state: "accepted",
+      acceptedBy: actor,
+      acceptedAt,
+      acceptedRevision: current.status.revision,
+    };
+    writeJson(root, current.paths.handoffJson, nextHandoff);
+    atomicWrite(root, current.paths.handoff, renderHandoff(nextHandoff));
+    const nextStatus = {
+      ...current.status,
+      currentActor: actor,
+      handoffState: "accepted",
+      handoffId: handoff.handoffId,
+      updatedAt: acceptedAt,
+    };
+    writeJson(root, current.paths.status, nextStatus);
+    appendEvent(root, current, "handoff-accepted", {
+      handoffId: handoff.handoffId,
+      actor,
+      executor,
+      codeSha: handoff.codeSha,
+      contextHash: handoff.contextHash,
+      revision: nextStatus.revision,
+    });
+    return { handoff: nextHandoff, status: nextStatus };
+  });
+  const sessionPath = normalizeRelative(relative(root, telemetrySessionPath(root, started.session.sessionId)));
+  const sync = flags.push
+    ? commitAndPushFacts(
+        root,
+        loadTaskBundle(root, id),
+        branch,
+        `chore(${id.toLowerCase()}): accept handoff as ${actor}`,
+        [sessionPath],
+      )
+    : { pushed: false, reason: "--push not requested" };
+  return { ...accepted, session: started.session, sync, aiPrompt: handoffPrompt(accepted.handoff) };
 }
 
 function identity(value, label) {
@@ -1024,6 +1330,8 @@ function startSession(root, id, flags) {
       ...bundle.status,
       revision: bundle.status.revision + 1,
       activeSessionId: idValue,
+      currentActor: actorId,
+      handoffState: flags["handoff-id"] ? "accepted" : bundle.status.handoffState || "working",
       updatedAt: startedAt,
     };
     writeJson(root, bundle.paths.status, next);
@@ -1091,6 +1399,10 @@ function stopSession(root, rawSessionId, flags) {
       ...bundle.status,
       revision: bundle.status.revision + 1,
       activeSessionId: null,
+      currentActor: null,
+      handoffState: ["accepted", "working"].includes(bundle.status.handoffState)
+        ? "paused"
+        : bundle.status.handoffState || null,
       updatedAt: endedAt,
     };
     writeJson(root, bundle.paths.status, next);
@@ -1334,6 +1646,23 @@ function validateRepository(root) {
         const session = sessionMap.get(bundle.status.activeSessionId);
         if (!session || session.taskId !== id || session.status !== "running")
           errors.push(`${id}: activeSessionId 未指向该任务的 running 会话`);
+        if (bundle.status.currentActor && bundle.status.currentActor !== session.actorId)
+          errors.push(`${id}: currentActor 与活动会话不一致`);
+      }
+      if (!bundle.status.activeSessionId && bundle.status.currentActor)
+        errors.push(`${id}: 没有活动会话时不得保留 currentActor`);
+      if (existsSync(bundle.paths.handoffJson)) {
+        const handoff = readJson(bundle.paths.handoffJson, `${id}/HANDOFF.json`);
+        if (handoff.schemaVersion !== 1 || handoff.taskId !== id || !handoff.handoffId)
+          errors.push(`${id}: HANDOFF.json 契约无效`);
+        if (!handoff.branch || !handoff.codeSha || !handoff.contextHash || !Number.isInteger(handoff.taskRevision))
+          errors.push(`${id}: HANDOFF.json 缺少分支、代码 SHA、revision 或上下文 hash`);
+        if (!new Set(["published", "accepted"]).has(handoff.state))
+          errors.push(`${id}: HANDOFF.state 必须是 published 或 accepted`);
+        if (handoff.verification?.status !== "passed") errors.push(`${id}: HANDOFF 验证状态不是 passed`);
+        for (const key of Object.keys(handoff)) {
+          if (forbiddenTelemetryKeys.has(key)) errors.push(`${id}: HANDOFF 禁止字段 ${key}`);
+        }
       }
     } catch (error) {
       errors.push(`${id}: ${error.message}`);
@@ -1359,6 +1688,8 @@ Commands:
   context check <ID>
   intent check [ID]
   checkpoint <ID> --summary <text> --expected-revision <N>
+  handoff publish <ID> --from <actor> --to <actor> --summary <text> --next-action <text> --verification passed --expected-revision <N> [--push]
+  handoff accept <ID> --actor <actor> --executor <tool> [--pull] [--push]
   session start <ID> --actor <id> --executor <tool> --expected-revision <N>
   session heartbeat <session-id>
   session stop <session-id> --summary <text> --expected-revision <N>
@@ -1390,6 +1721,8 @@ async function main() {
     return;
   }
   if (command === "checkpoint") return print(checkpoint(root, taskId(subcommand), flags));
+  if (command === "handoff" && subcommand === "publish") return print(publishHandoff(root, taskId(rawId), flags));
+  if (command === "handoff" && subcommand === "accept") return print(acceptHandoff(root, taskId(rawId), flags));
   if (command === "session" && subcommand === "start") return print(startSession(root, taskId(rawId), flags));
   if (command === "session" && subcommand === "heartbeat") return print(heartbeatSession(root, rawId));
   if (command === "session" && subcommand === "stop") return print(stopSession(root, rawId, flags));

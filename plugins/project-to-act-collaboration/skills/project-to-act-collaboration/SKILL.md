@@ -1,6 +1,6 @@
 ---
 name: project-to-act-collaboration
-description: Coordinate repository-backed work across humans and any AI coding tool. Use when initializing durable project management, creating or executing tasks, synchronizing AI context, declaring modification intent, preventing concurrent conflicts, recording tool-neutral work sessions, monitoring workload and progress, handing work between executors, or validating collaboration in local Git and CI environments.
+description: Coordinate repository-backed work across humans and any AI coding tool. Use when initializing durable project management, creating or executing tasks, publishing or accepting sequential handoffs on the same task, synchronizing AI context, preventing concurrent writers, recording tool-neutral work sessions, monitoring progress, or validating collaboration in local Git and CI environments.
 ---
 
 # Project-to-Act Collaboration
@@ -18,6 +18,22 @@ node .project-to-act/bin/pta.mjs <command>
 读取 `.project-to-act/skill/SKILL.md` 作为项目固化的协作流程。若尚未初始化，运行本 Skill 的 `scripts/pta.mjs init --project-root <root>`。工具专属规则只引用该 Skill 和 `AGENTS.md`，不得复制独立流程。
 
 修改协议结构或并发语义前读取 [protocol.md](references/protocol.md)。采集、解释或导出工作量数据前读取 [monitoring.md](references/monitoring.md)。配置 AI 工具或 GitHub 时读取 [adapters.md](references/adapters.md)。
+
+## 同一任务顺序接力
+
+同一个任务只使用一个任务目录和一个任务分支。A 完成一段工作并提交代码后发布：
+
+```text
+pta handoff publish <ID> --from alice --to bob --summary <result> --next-action <next> --verification passed --expected-revision <N> --push
+```
+
+发布会释放写入权，并把代码 SHA、Task revision、Context hash、完成项、待办、决策和验证状态写入 `HANDOFF.json`。B 在自己的干净 clone 中接收：
+
+```text
+pta handoff accept <ID> --actor bob --executor <tool> --pull --push
+```
+
+接收只允许 Git 快进；代码锚点、revision、上下文或验证状态任一不一致即停止。成功后 B 成为唯一写入者，CLI 返回可交给任意 AI 的续写指令。不要把 A 的聊天记录当作交接材料。
 
 ## 执行任务
 
@@ -39,7 +55,7 @@ node .project-to-act/bin/pta.mjs <command>
    pta session stop <session-id> --summary <result> --expected-revision <N>
    ```
 
-9. 把可复现检查写入 `evidence/`，维护 `HANDOFF.md`，经过 review 后完成任务。
+9. 把可复现检查写入 `evidence/`；换人继续时使用 `handoff publish/accept`，经过 review 后完成任务。
 
 ## 监控与统计
 

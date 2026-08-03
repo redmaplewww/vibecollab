@@ -1,4 +1,4 @@
 interface:
   display_name: "Project-to-Act Collaboration"
-  short_description: "Coordinate work across humans and AI tools"
-  default_prompt: "Use $project-to-act-collaboration to coordinate this repository task and record tool-neutral work telemetry."
+  short_description: "Hand off one repository task across people and AI"
+  default_prompt: "Use $project-to-act-collaboration to publish or accept a verified handoff on this repository task."

@@ -19,7 +19,8 @@ GitHub Issues may mirror a task, but must carry `taskId` and link back to the ta
 - `INTENT.json`: paths, symbols, contracts and migrations this task intends to write.
 - `CONTEXT.json`: generated input paths, hashes, base commit and combined context hash.
 - `STATUS.json`: revisioned task state and last durable checkpoint.
-- `HANDOFF.md`: concise continuation notes and unresolved risks.
+- `HANDOFF.json`: current machine-verifiable sequential handoff snapshot.
+- `HANDOFF.md`: generated human-readable continuation notes and AI resume instruction.
 - `events/*.json`: append-only milestone records.
 - `evidence/*.json`: reproducible verification evidence.
 
@@ -35,6 +36,14 @@ Do not copy source files or full prompts into these files. Reference paths and h
 ## States
 
 Use `draft`, `ready`, `in_progress`, `blocked`, `review`, `done`, or `cancelled`. Active conflict checks include `ready`, `in_progress`, `blocked`, and `review`. A stale expected revision rejects a transition or checkpoint.
+
+## Sequential handoff
+
+Two people continuing one Task share the same task directory and task branch. They do not create a second Task. At most one `activeSessionId` and `currentActor` may exist.
+
+Publishing requires committed code, a fresh context and a passed verification attestation. The snapshot binds `branch`, `codeSha`, `taskRevision` and `contextHash`; it records completed work, pending work, decisions and `nextAction`. Publishing stops the current session and releases `currentActor`.
+
+Accepting may fetch and fast-forward the same branch, but must never force, reset or merge divergent history. It verifies that the code anchor is in local history, the Task revision and Context hash match, verification passed, and no writer is active. Only then may it start the receiving actor's session. `events/` remains the append-only audit trail.
 
 ## Conflict semantics
 

@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-003",
+  "title": "Single-task sequential handoff",
+  "owner": "codex",
+  "goal": "把 VibeCollab 收敛为同一 Task 的双人顺序接力系统，让 A 发布后 B 能恢复相同代码、任务进度、上下文和实现决策。",
+  "reason": "用户明确纠正了并行拆任务方向；真实需求是单写入者在同一 Task 和分支上轮流交接。",
+  "currentBehavior": "平台以功能、任务、冲突和工作量监控为主；CLI 只有 checkpoint/session/context 原语，没有可直接使用的发布与接收交接。",
+  "expectedBehavior": "CLI 和 Web 都提供发布进度与接收进度；交接由 Git 分支、代码 SHA、Task revision、Context hash 和验证状态共同封印，不一致时失败关闭。",
+  "scope": {
+    "allowed": [
+      "skills/project-to-act-collaboration/**",
+      "plugins/project-to-act-collaboration/**",
+      ".project-to-act/bin/pta.mjs",
+      ".project-to-act/skill/**",
+      ".project-to-act/tasks/VC-003/**",
+      "src/lib/**",
+      "src/app/api/projects/[id]/handoff/**",
+      "src/app/page.tsx",
+      "src/app/layout.tsx",
+      "src/components/project-dashboard.tsx",
+      "src/app/globals.css",
+      "scripts/**",
+      "docs/**",
+      "README.md",
+      "AGENTS.md",
+      "package.json",
+      ".project-to-act/PROJECT_*.md"
+    ],
+    "nonGoals": [
+      "允许两个人同时写同一个 Task",
+      "自动合并 PR 或部署生产环境",
+      "保存完整提示、聊天记录或思维链",
+      "把工作量指标用于个人绩效评分"
+    ]
+  },
+  "invariants": [
+    "同一 Task 任一时刻最多一个活动写入者",
+    "接收端代码、任务 revision、上下文 hash 或验证状态不一致时不得开始会话",
+    "AI 工具可替换，恢复工作不得依赖上一位开发者的聊天记录",
+    "平台不得执行被观察仓库的源码或任意用户命令",
+    "Git 同步只允许 fetch、ff-only、任务事实提交和非强制 push"
+  ],
+  "authoritativeContext": ["docs/ARCHITECTURE.md", "skills/project-to-act-collaboration/references/protocol.md"],
+  "dependencies": [],
+  "contracts": {
+    "read": ["Project-to-Act task/session/context protocol v1", "registered repository allowlist"],
+    "write": ["Sequential Handoff Contract v1", "authenticated handoff action API"]
+  },
+  "acceptance": [
+    "A 可在干净且已提交的任务分支发布包含完成项、待办、决策、下一步和验证状态的交接快照",
+    "B 可从 GitHub 快进接收同一分支，四项一致性校验通过后成为唯一写入者并获得 AI 续写提示",
+    "存在脏工作区、错误分支、旧 revision、旧 Context hash、未通过验证或活动写入者时交接失败关闭",
+    "项目页面以当前 Task 和发布/接收操作为主，工作量与多任务统计降为次要详情",
+    "通用 Skill、插件适配器和仓库 vendored CLI 保持一致"
+  ],
+  "verification": [
+    "npm run adapters:check",
+    "npm test",
+    "npm run verify",
+    "在临时双 clone Git 仓库中完成 publish/push 与 accept/pull 接力旅程"
+  ],
+  "baseSha": "9d33205dc679ba3c87f3a0dbc7d86b2dcdcffb62",
+  "gitBaseline": {
+    "clean": true,
+    "statusHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "createdAt": "2026-08-03T10:08:07.422Z"
+}

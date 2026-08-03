@@ -175,6 +175,79 @@ function readTasks(root: string, warnings: Warning[]) {
         if (event?.type === "checkpoint") checkpoints += 1;
       }
     }
+    const activeSessionId = stringValue(status.activeSessionId);
+    const activeSession = activeSessionId
+      ? safeJson(
+          join(root, ".project-to-act", "telemetry", "sessions", `${activeSessionId}.json`),
+          [],
+          `${entry.name} active session`,
+        )
+      : null;
+    const handoffRaw = existsSync(join(taskRoot, "HANDOFF.json"))
+      ? safeJson(join(taskRoot, "HANDOFF.json"), warnings, `${entry.name}/HANDOFF.json`)
+      : null;
+    let handoff: CollaborationOverview["tasks"][number]["handoff"] = null;
+    if (handoffRaw) {
+      const handoffState = handoffRaw.state === "accepted" ? "accepted" : "published";
+      const handoffBranch = stringValue(handoffRaw.branch) ?? "";
+      const codeSha = stringValue(handoffRaw.codeSha) ?? "";
+      const taskRevision = Math.trunc(numberValue(handoffRaw.taskRevision) ?? 0);
+      const acceptedRevision =
+        numberValue(handoffRaw.acceptedRevision) === null
+          ? null
+          : Math.trunc(numberValue(handoffRaw.acceptedRevision)!);
+      const expectedRevision = handoffState === "accepted" ? acceptedRevision : taskRevision;
+      const handoffContext = stringValue(handoffRaw.contextHash) ?? "";
+      const verification = (handoffRaw.verification as JsonObject | null)?.status;
+      const branchMatches = Boolean(handoffBranch && gitCommand(root, ["branch", "--show-current"]) === handoffBranch);
+      const codeMatches = Boolean(
+        codeSha && gitCommand(root, ["merge-base", "--is-ancestor", codeSha, "HEAD"]) !== null,
+      );
+      const revisionMatches =
+        expectedRevision !== null && expectedRevision === Math.trunc(numberValue(status.revision) ?? 0);
+      const contextMatches = Boolean(
+        handoffContext &&
+        handoffContext === stringValue(status.contextHash) &&
+        handoffContext === stringValue(context?.contextHash),
+      );
+      const verificationPassed = verification === "passed";
+      handoff = {
+        id: stringValue(handoffRaw.handoffId) ?? "invalid",
+        state: handoffState,
+        from: stringValue(handoffRaw.from) ?? "unknown",
+        to: stringValue(handoffRaw.to) ?? "unknown",
+        branch: handoffBranch,
+        codeSha,
+        taskRevision,
+        contextHash: handoffContext,
+        summary: stringValue(handoffRaw.summary) ?? "",
+        completed: stringArray(handoffRaw.completed),
+        pending: stringArray(handoffRaw.pending),
+        decisions: stringArray(handoffRaw.decisions),
+        nextAction: stringValue(handoffRaw.nextAction) ?? "",
+        verificationStatus: ["passed", "failed", "not-run"].includes(String(verification))
+          ? (verification as "passed" | "failed" | "not-run")
+          : "unknown",
+        publishedAt: stringValue(handoffRaw.publishedAt) ?? new Date(0).toISOString(),
+        acceptedBy: stringValue(handoffRaw.acceptedBy),
+        acceptedAt: stringValue(handoffRaw.acceptedAt),
+        acceptedRevision,
+        consistency: {
+          branch: branchMatches,
+          code: codeMatches,
+          revision: revisionMatches,
+          context: contextMatches && contextState === "fresh",
+          verification: verificationPassed,
+          ready:
+            branchMatches &&
+            codeMatches &&
+            revisionMatches &&
+            contextMatches &&
+            contextState === "fresh" &&
+            verificationPassed,
+        },
+      };
+    }
     tasks.push({
       id: entry.name,
       title: stringValue(task.title) ?? entry.name,
@@ -190,7 +263,9 @@ function readTasks(root: string, warnings: Warning[]) {
         writesContracts: stringArray(intent.contractsWrite),
         migrations: intent.migrations === true,
       },
-      activeSessionId: stringValue(status.activeSessionId),
+      activeSessionId,
+      currentActor: stringValue(status.currentActor) ?? stringValue(activeSession?.actorId),
+      handoff,
       checkpoints,
       evidence: countFiles("evidence"),
     });

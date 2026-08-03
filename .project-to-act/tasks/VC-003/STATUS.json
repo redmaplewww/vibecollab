@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-003",
+  "state": "done",
+  "revision": 10,
+  "owner": "codex",
+  "branch": "codex/vc-003-sequential-handoff",
+  "contextHash": "31d222c7e4338fd3eb9228ad3b82556ea5a5ae116e0a22928edfb210a5d9a4ee",
+  "updatedAt": "2026-08-03T10:35:29.372Z",
+  "lastCheckpoint": "1be64053-63db-431d-95f5-7c0d48601f0d",
+  "activeSessionId": null,
+  "currentActor": null,
+  "handoffState": null,
+  "headSha": "9d33205dc679ba3c87f3a0dbc7d86b2dcdcffb62"
+}

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-003",
+  "revision": 0,
+  "baseSha": "9d33205dc679ba3c87f3a0dbc7d86b2dcdcffb62",
+  "paths": [
+    "skills/project-to-act-collaboration/**",
+    "plugins/project-to-act-collaboration/**",
+    ".project-to-act/bin/pta.mjs",
+    ".project-to-act/skill/**",
+    ".project-to-act/tasks/VC-003/**",
+    "src/lib/**",
+    "src/app/api/projects/[id]/handoff/**",
+    "src/app/page.tsx",
+    "src/app/layout.tsx",
+    "src/components/project-dashboard.tsx",
+    "src/app/globals.css",
+    "docs/**",
+    "README.md",
+    "AGENTS.md",
+    "package.json",
+    ".project-to-act/PROJECT_*.md"
+  ],
+  "symbols": ["publishHandoff", "acceptHandoff", "SequentialHandoff", "ProjectDashboard"],
+  "contractsWrite": ["Sequential Handoff Contract v1", "authenticated handoff action API"],
+  "migrations": false
+}

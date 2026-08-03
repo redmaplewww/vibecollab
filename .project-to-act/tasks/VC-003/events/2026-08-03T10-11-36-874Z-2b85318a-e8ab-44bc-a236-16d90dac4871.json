@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "eventId": "1d09ff09-3573-4613-888f-a94512c5e39c",
+  "taskId": "VC-003",
+  "type": "session-start",
+  "timestamp": "2026-08-03T10:11:36.874Z",
+  "sessionId": "s-4e942034-e20f-43fd-a033-dc775198c909",
+  "actorId": "codex",
+  "executor": "codex",
+  "revision": 3
+}
