@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-006",
+  "revision": 0,
+  "baseSha": "c31be93eaad0c8d9a41c04c874464230c5e1e0c2",
+  "paths": [
+    ".github/workflows/verify.yml",
+    "templates/repository/.github/workflows/repo-task-sync.yml",
+    ".project-to-act/tasks/VC-006/**",
+    ".project-to-act/PROJECT_*.md"
+  ],
+  "symbols": [],
+  "contractsWrite": ["Public CI action versions"],
+  "migrations": false
+}

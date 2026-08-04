@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-006",
+  "baseSha": "c31be93eaad0c8d9a41c04c874464230c5e1e0c2",
+  "inputs": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "dfc3e01c323a52a0e4860d832ceab5a5e28bab9b1c24fa6f3e91501f0a294caa",
+      "bytes": 1171,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/PROJECT_OVERVIEW.md",
+      "sha256": "a7f65e68722355c7f798ae299067c7740ed93b95e4d2bd7c5f35a98cfa9445bf",
+      "bytes": 4454,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/COLLABORATION_CONFIG.json",
+      "sha256": "5dee6b22c829fe7e01fb5b8491a69853498d6c24aa785c758763042c92b85fcd",
+      "bytes": 543,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/skill/SKILL.md",
+      "sha256": "ef4702dd4e6d7ba67526aa91b691884df7e1416bccf95e28f0eb75db63efe464",
+      "bytes": 4043,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/tasks/VC-006/TASK.json",
+      "sha256": "6b20304850bc6ba943d49f95a7349324e5132fe4e7f1c4f9074aab9d63640dd4",
+      "bytes": 1846,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/tasks/VC-006/INTENT.json",
+      "sha256": "661e3dc7aeca976c6681828d1633a612e0870b4304b01674937d5f98cda41600",
+      "bytes": 405,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".github/workflows/verify.yml",
+      "sha256": "151c112821b4e4530f205dcec49fb1f750c6aa398ff046ca21af045b66b60c6d",
+      "bytes": 288,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": "templates/repository/.github/workflows/repo-task-sync.yml",
+      "sha256": "6994de3b0e5345dd76f5bfcc991dceab961185d775716a49924a07188f994c4e",
+      "bytes": 486,
+      "normalization": "utf8-lf"
+    }
+  ],
+  "createdAt": "2026-08-04T18:10:12.946Z",
+  "contextHash": "64845d08773219716521a29480708314dfba0223d09a547983a0705e4d77a0be"
+}

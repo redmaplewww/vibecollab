@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-006",
+  "title": "Update public Actions runtime",
+  "owner": "codex",
+  "goal": "把根仓库和分发模板中的 GitHub Actions 更新到官方当前 v7 主版本，消除 Node 20 action runtime 弃用警告。",
+  "reason": "公共 main 首次 CI 虽通过，但 GitHub 明确警告 actions/checkout@v4 与 actions/setup-node@v4 运行时已弃用。",
+  "currentBehavior": "两个工作流使用 actions/checkout@v4 和 actions/setup-node@v4。",
+  "expectedBehavior": "两个工作流统一使用 2026-08-05 官方最新主版本 v7，公共 main CI 继续通过。",
+  "scope": {
+    "allowed": [
+      ".github/workflows/verify.yml",
+      "templates/repository/.github/workflows/repo-task-sync.yml",
+      ".project-to-act/tasks/VC-006/**",
+      ".project-to-act/PROJECT_*.md"
+    ],
+    "nonGoals": ["修改协议行为", "更改目标项目 Node.js 20+ 要求"]
+  },
+  "invariants": ["只引用 actions 官方仓库发布版本", "根工作流和模板不得漂移", "npm verify 必须通过"],
+  "authoritativeContext": [".github/workflows/verify.yml", "templates/repository/.github/workflows/repo-task-sync.yml"],
+  "dependencies": [],
+  "contracts": {
+    "read": ["GitHub Actions runtime compatibility"],
+    "write": ["Public CI action versions"]
+  },
+  "acceptance": [
+    "根工作流和分发模板均使用 checkout@v7 与 setup-node@v7",
+    "npm verify 通过",
+    "公共 main GitHub Actions 通过"
+  ],
+  "verification": [
+    "gh release view actions/checkout and actions/setup-node",
+    "npm.cmd run verify",
+    "gh run watch --exit-status"
+  ],
+  "baseSha": "c31be93eaad0c8d9a41c04c874464230c5e1e0c2",
+  "gitBaseline": {
+    "clean": true,
+    "statusHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "createdAt": "2026-08-04T18:09:13.572Z"
+}
