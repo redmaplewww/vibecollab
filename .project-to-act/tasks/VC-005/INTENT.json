@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-005",
+  "revision": 0,
+  "baseSha": "3e5d76099f0bb308eabdab4de782ced36e1b963a",
+  "paths": [
+    "README.md",
+    "package.json",
+    ".project-to-act/PROJECT_*.md",
+    ".project-to-act/tasks/VC-005/**"
+  ],
+  "symbols": [],
+  "contractsWrite": ["Public distribution instructions", "GitHub repository metadata"],
+  "migrations": false
+}

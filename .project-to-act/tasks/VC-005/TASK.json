@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-005",
+  "title": "Publish public GitHub repository",
+  "owner": "codex",
+  "goal": "把 VibeCollab v0.3.0 发布为 redmaplewww/vibecollab 公共 GitHub 仓库，并提供可直接复制执行的简短安装与双人接力说明。",
+  "reason": "用户明确要求将当前成果推送到 GitHub、写简单使用说明并设为公开仓库。",
+  "currentBehavior": "本地分支已完成 v0.3.0 验收，但没有 remote；README 的安装步骤假设用户已在本仓库中。",
+  "expectedBehavior": "公共仓库 main 包含已验收代码；README 从 clone 开始说明安装、A 交接、B 接力和进度查看；GitHub 展示正确描述与主题。",
+  "scope": {
+    "allowed": [
+      "README.md",
+      "package.json",
+      ".project-to-act/PROJECT_*.md",
+      ".project-to-act/tasks/VC-005/**",
+      "Git remote and GitHub repository metadata"
+    ],
+    "nonGoals": [
+      "修改核心协议或恢复 Web 控制面",
+      "发布 npm package",
+      "未经用户选择擅自授予开源许可证",
+      "创建 SaaS、部署服务或收费系统"
+    ]
+  },
+  "invariants": [
+    "仓库必须是 Public 且默认分支为 main",
+    "不得推送密钥、令牌、个人数据或未脱敏日志",
+    "README 中的命令必须指向真实公共仓库地址",
+    "发布前 npm verify、Skill 校验和治理校验必须通过",
+    "不改写已有 Git 历史"
+  ],
+  "authoritativeContext": ["README.md", ".project-to-act/PROJECT_OVERVIEW.md"],
+  "dependencies": [],
+  "contracts": {
+    "read": ["Repo Task Sync Protocol v1", "GitHub public repository settings"],
+    "write": ["Public distribution instructions", "GitHub repository metadata"]
+  },
+  "acceptance": [
+    "https://github.com/redmaplewww/vibecollab 可匿名访问且 visibility 为 PUBLIC",
+    "远程 main HEAD 与本地最终发布提交一致",
+    "README 从 git clone 开始说明一条命令安装、A/B 接力和进度查看",
+    "GitHub 仓库描述和 topics 准确表达 file-only、AI collaboration 和 Git workflow",
+    "发布前当前树和全部历史的常见凭据模式扫描无命中"
+  ],
+  "verification": [
+    "npm.cmd run verify",
+    "python skill-creator/scripts/quick_validate.py skills/repo-task-sync",
+    "node .project-to-act/bin/pta.mjs validate --project-root .",
+    "gh repo view redmaplewww/vibecollab --json visibility,url,defaultBranchRef",
+    "git ls-remote origin refs/heads/main"
+  ],
+  "baseSha": "3e5d76099f0bb308eabdab4de782ced36e1b963a",
+  "gitBaseline": {
+    "clean": true,
+    "statusHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "createdAt": "2026-08-04T18:04:11.251Z"
+}

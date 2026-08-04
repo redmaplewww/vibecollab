@@ -1,8 +1,21 @@
 {
   "name": "vibecollab",
   "version": "0.3.0",
+  "description": "File-only context synchronization for human and AI coding teams through Git pull requests.",
   "private": true,
   "type": "module",
+  "homepage": "https://github.com/redmaplewww/vibecollab#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/redmaplewww/vibecollab.git"
+  },
+  "keywords": [
+    "ai-coding",
+    "collaboration",
+    "git",
+    "pull-request",
+    "vibe-coding"
+  ],
   "engines": {
     "node": ">=20"
   },

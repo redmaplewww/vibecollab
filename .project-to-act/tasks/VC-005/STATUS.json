@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-005",
+  "state": "in_progress",
+  "revision": 3,
+  "owner": "codex",
+  "branch": "codex/vc-005-public-github",
+  "contextHash": "382e53a7891c2ddc5b9ff94108dac68ea0ccc79d48f5f552e5cf046b2cfde440",
+  "updatedAt": "2026-08-04T18:05:42.930Z",
+  "lastCheckpoint": null,
+  "activeSessionId": null,
+  "currentActor": null,
+  "handoffState": null,
+  "handoffId": null
+}

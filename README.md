@@ -2,14 +2,17 @@
 
 VibeCollab 是一个纯文件的团队 AI 编程协作协议。它不需要服务器、数据库、账号、专属 AI 或常驻进程。
 
+File-only context synchronization for human and AI coding teams through Git pull requests.
+
 > 代码与任务状态进入同一个 PR；merge 后的 Git commit，就是下一位开发者和 AI 的完整共享快照。
 
 ## 安装到现有仓库
 
-要求 Node.js 20+ 和 Git。在本仓库运行：
+要求 Node.js 20+ 和 Git：
 
 ```powershell
-node scripts/install.mjs --target D:\code\your-project
+git clone https://github.com/redmaplewww/vibecollab.git
+node .\vibecollab\scripts\install.mjs --target D:\code\your-project
 ```
 
 安装器不会覆盖已有文件；已有 `AGENTS.md` 时只追加一个带标记的协作入口。目标仓库会得到：
@@ -26,7 +29,7 @@ AGENTS.md
 └─ workflows/repo-task-sync.yml
 ```
 
-首次安装后，负责人填写 `PROJECT.md` 与 `TASK.md`，然后把这些文件作为一个 PR 合入 `main`。
+首次安装后，负责人填写目标仓库中的 `.ai-team/PROJECT.md` 与 `.ai-team/TASK.md`，然后把这些文件作为一个 PR 合入 `main`。
 
 在 GitHub 的 `Settings → Branches` 中保护 `main`：要求通过 PR 合并、至少一人审批，并把 `repo-task-sync` 设为 required status check。这样任何“代码已改但共享任务状态未更新”的 PR 都无法合并。
 
