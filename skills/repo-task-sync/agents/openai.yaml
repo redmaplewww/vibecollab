@@ -1,0 +1,4 @@
+interface:
+  display_name: "Repo Task Sync"
+  short_description: "Sync code and AI task context through Git PRs"
+  default_prompt: "Use $repo-task-sync to resume the current repository task from its merged project files."

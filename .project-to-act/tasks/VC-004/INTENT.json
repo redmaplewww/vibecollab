@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-004",
+  "revision": 0,
+  "baseSha": "099a3b5b646dd9aad388eee7ddc2e751f429011c",
+  "paths": [
+    "templates/**",
+    "skills/**",
+    "scripts/**",
+    "tests/**",
+    ".github/**",
+    "README.md",
+    "AGENTS.md",
+    "package.json",
+    "docs/**",
+    "src/**",
+    "plugins/**",
+    "*.ts",
+    "vibecollab.config.json",
+    ".project-to-act/PROJECT_*.md",
+    ".project-to-act/tasks/VC-004/**"
+  ],
+  "symbols": ["installRepositoryFiles", "validateRepository"],
+  "contractsWrite": ["Repo Task Sync Protocol v1", "file-only installation contract"],
+  "migrations": false
+}

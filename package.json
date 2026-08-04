@@ -1,40 +1,16 @@
 {
   "name": "vibecollab",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-    "dev": "next dev --hostname 127.0.0.1 --port 3210",
-    "build": "next build",
-    "start": "next start --hostname 127.0.0.1 --port 3210",
-    "lint": "eslint .",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "format:check": "prettier --check .",
-    "verify": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build",
-    "pta": "node skills/project-to-act-collaboration/scripts/pta.mjs --project-root .",
-    "adapters:check": "node scripts/sync-adapters.mjs --check",
-    "handoff:build": "node scripts/build-handoff.mjs"
-  },
-  "dependencies": {
-    "lucide-react": "^1.28.0",
-    "next": "16.2.12",
-    "react": "19.2.8",
-    "react-dom": "19.2.8",
-    "zod": "^4.4.3"
-  },
-  "devDependencies": {
-    "@types/node": "^24.10.0",
-    "@types/react": "^19.2.2",
-    "@types/react-dom": "^19.2.2",
-    "eslint": "^9.39.0",
-    "eslint-config-next": "16.2.12",
-    "prettier": "^3.6.2",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.17"
-  },
-  "overrides": {
-    "postcss": "8.5.25",
-    "sharp": "0.35.3"
+    "init": "node scripts/install.mjs",
+    "check": "node scripts/check.mjs",
+    "test": "node --test",
+    "verify": "node --test && node scripts/check-distribution.mjs",
+    "pta": "node .project-to-act/bin/pta.mjs --project-root ."
   }
 }

@@ -1,4 +1,0 @@
-interface:
-  display_name: "Project-to-Act Collaboration"
-  short_description: "Hand off one repository task across people and AI"
-  default_prompt: "Use $project-to-act-collaboration to publish or accept a verified handoff on this repository task."

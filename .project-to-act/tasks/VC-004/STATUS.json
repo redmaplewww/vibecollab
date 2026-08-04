@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-004",
+  "state": "in_progress",
+  "revision": 3,
+  "owner": "codex",
+  "branch": "codex/vc-004-file-only-sync",
+  "contextHash": "ccc88d6ef66882b251b9ff1d6e7ded3f2c4505898b69afab8b468f5f38ad4707",
+  "updatedAt": "2026-08-04T06:13:17.515Z",
+  "lastCheckpoint": null,
+  "activeSessionId": null,
+  "currentActor": null,
+  "handoffState": null,
+  "handoffId": null
+}

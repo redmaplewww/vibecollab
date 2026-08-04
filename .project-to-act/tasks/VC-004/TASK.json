@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-004",
+  "title": "File-only PR collaboration",
+  "owner": "codex",
+  "goal": "把 VibeCollab 收敛为可复制到任意 Git 仓库的一组项目文件，让两个人只通过 PR 与 merge 同步代码、功能进度、实现决策和 AI 上下文。",
+  "reason": "用户确认复杂控制台、Session、遥测和四锚点交接超出实际需求；同一任务只有一个写入者，Git 提交已经能原子绑定代码与项目状态。",
+  "currentBehavior": "使用 Next.js 控制台、Project-to-Act JSON CLI、Session、Context hash 和 handoff publish/accept 完成接力，安装与日常使用步骤较多。",
+  "expectedBehavior": "目标仓库只安装少量 Markdown/JavaScript/GitHub 文件；A 在代码 PR 中同步更新 TASK.md，merge 后 B 拉取 main 即获得同一代码与上下文，再由任意 AI 继续。",
+  "scope": {
+    "allowed": [
+      "templates/**",
+      "skills/**",
+      "scripts/**",
+      "tests/**",
+      ".github/**",
+      "README.md",
+      "AGENTS.md",
+      "package.json",
+      "package-lock.json",
+      "docs/**",
+      "src/**",
+      "plugins/**",
+      "next.config.ts",
+      "next-env.d.ts",
+      "tsconfig.json",
+      "vitest.config.ts",
+      "eslint.config.mjs",
+      "vibecollab.config.json",
+      ".project-to-act/PROJECT_*.md",
+      ".project-to-act/tasks/VC-004/**"
+    ],
+    "nonGoals": [
+      "保存或同步 AI 聊天记录、完整提示或思维链",
+      "秒级协同编辑或允许两个人同时写同一任务",
+      "提供 Web 控制台、数据库、账号系统或 SaaS 服务",
+      "自动合并 PR、部署生产环境或评价个人绩效"
+    ]
+  },
+  "invariants": [
+    "代码与 TASK.md 必须在同一个 PR 中提交和合并",
+    "同一任务任一时刻只有一个写入者",
+    "任何 AI 都必须先读 AGENTS.md、PROJECT.md 和 TASK.md 后再修改代码",
+    "验收结果由仓库检查与 CI 决定，不依赖 AI 自述",
+    "安装器不得覆盖目标仓库已有文件"
+  ],
+  "authoritativeContext": [
+    "README.md",
+    ".project-to-act/PROJECT_OVERVIEW.md"
+  ],
+  "dependencies": [],
+  "contracts": {
+    "read": ["Git commit/PR/merge semantics", "repository-local AI instructions"],
+    "write": ["Repo Task Sync Protocol v1", "file-only installation contract"]
+  },
+  "acceptance": [
+    "空 Git 仓库可用一条 Node 命令安装全部协作文件且不引入第三方依赖",
+    "A 修改代码但未更新 TASK.md 时 CI 校验失败，二者同 PR 更新时通过",
+    "B 在另一个 clone 拉取合并后的 main 后可仅凭仓库文件准确恢复目标、完成项、决策、待办和下一步",
+    "通用 Skill 不依赖 Codex、Cursor、Claude Code 或 Copilot 的专属能力",
+    "README 用不超过一页核心流程说明初始化、A 交接、B 接力和进度查看"
+  ],
+  "verification": [
+    "npm test",
+    "npm run verify",
+    "使用 bare remote、Alice clone 与 Bob clone 模拟 PR merge 后同步",
+    "python skill-creator/scripts/quick_validate.py skills/repo-task-sync"
+  ],
+  "baseSha": "099a3b5b646dd9aad388eee7ddc2e751f429011c",
+  "gitBaseline": {
+    "clean": true,
+    "statusHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "createdAt": "2026-08-04T06:00:52.796Z"
+}

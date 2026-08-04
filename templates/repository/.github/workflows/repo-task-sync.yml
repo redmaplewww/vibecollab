@@ -1,0 +1,24 @@
+name: Repo task sync
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  repo-task-sync:
+    name: repo-task-sync
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Validate shared task snapshot
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: node .ai-team/check.mjs --base "$BASE_SHA"
+

@@ -12,8 +12,8 @@
 ## 下一版本计划
 
 - 目标版本：`0.3.0`
-- 计划内容：GitHub checks 投影、组织级权限和跨机器会话聚合
-- 发布条件：v0.2.0 完成真实两人接力试运行并冻结 Handoff Contract v1
+- 计划内容：破坏性收敛为纯项目文件、通用 Skill、零依赖安装器与 GitHub PR required check
+- 发布条件：空仓库安装、校验器反例/正例、双 clone merge 接力与 Skill 校验全部通过
 
 ## 版本历史
 

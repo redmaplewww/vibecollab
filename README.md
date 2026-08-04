@@ -1,280 +1,105 @@
 # VibeCollab
 
-VibeCollab 是一个独立的单任务接力协作系统。两个人轮流开发同一个 Task：A 发布代码与进度，B 校验并接管完全相同的功能上下文，然后使用任意 AI 继续工作。
+VibeCollab 是一个纯文件的团队 AI 编程协作协议。它不需要服务器、数据库、账号、专属 AI 或常驻进程。
 
-> 仓库是共享大脑，任务规格是工作指令，Git 是并发控制，CI 是最终裁判。
+> 代码与任务状态进入同一个 PR；merge 后的 Git commit，就是下一位开发者和 AI 的完整共享快照。
 
-VibeCollab 不嵌入业务应用。每个业务仓库只安装可移植的 `.project-to-act` 协议；独立控制台从 allowlist 读取项目，并且只通过受限的交接接口执行 fetch、fast-forward、任务事实提交和非强制 push。
+## 安装到现有仓库
 
-## 当前版本
-
-- 版本：`0.2.0`
-- 状态：本地可用，尚未发布远程包
-- 默认地址：`http://127.0.0.1:3210`
-- 运行时：Node.js 20+、Git
-- 技术栈：Next.js 16、React 19、TypeScript、Zod
-- 数据来源：本地 Git 仓库中的 `.project-to-act`、Git 元数据与受限交接动作
-
-## 核心能力
-
-- 在同一个 Task 和任务分支上执行 A → B → A 的顺序接力。
-- `handoff publish` 一次固化完成项、待办、实现决策、下一步和验证状态。
-- `handoff accept` 同时校验代码 SHA、Task revision、Context hash 和验证状态。
-- 接收成功后自动建立唯一写入者会话，并生成可交给任意 AI 的续写指令。
-- 注册并观察多个本地代码仓库。
-- 统一展示功能状态、任务契约、负责人、AI 执行端和工作会话。
-- 检测活动任务的路径、符号、公共契约和迁移意图冲突。
-- 检测任务上下文相对权威文件是否已经漂移。
-- 展示 Git 分支、worktree、当前修改和近期提交。
-- 区分 verified、tracked、tool-reported 和 unavailable 指标，不伪造未知数据。
-- 提供工具无关 Skill、零依赖 CLI、GitHub Issue/PR 模板和 CI 门禁。
-- 提供可选 Codex 插件，但不要求团队统一使用 Codex。
-
-## 系统边界
-
-```mermaid
-flowchart LR
-  A["A + 任意 AI"] --> P["发布 HANDOFF"]
-  P --> G["同一 Git 任务分支"]
-  G --> C["四项一致性校验"]
-  C --> B["B + 任意 AI 继续同一 Task"]
-  G --> V["VibeCollab 接力台"]
-```
-
-VibeCollab 不执行被观察仓库的源码，不运行任意用户命令，不自动合并 PR，也不部署生产环境。完整架构见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。
-
-## 快速启动
-
-### 1. 安装依赖
+要求 Node.js 20+ 和 Git。在本仓库运行：
 
 ```powershell
-git clone <repository-or-bundle> VibeCollab
-Set-Location VibeCollab
-npm ci
+node scripts/install.mjs --target D:\code\your-project
 ```
 
-### 2. 配置本地项目
-
-复制默认注册表。`vibecollab.config.local.json` 已被 Git 忽略，不会把本机路径提交到仓库。
-
-```powershell
-Copy-Item vibecollab.config.json vibecollab.config.local.json
-```
-
-编辑为：
-
-```json
-{
-  "schemaVersion": 1,
-  "projects": [
-    {
-      "id": "my-app",
-      "name": "My App",
-      "root": "D:/code/my-app"
-    }
-  ]
-}
-```
-
-约束：
-
-- `id` 只能使用小写字母、数字和连字符。
-- `root` 可以是绝对路径，也可以相对配置文件目录。
-- 项目根目录必须存在并包含 `.project-to-act`。
-- 网页与 API 只能读取注册表中的项目 ID，不能通过 URL 读取任意路径。
-
-### 3. 启动开发服务
-
-```powershell
-npm run dev
-```
-
-打开 `http://127.0.0.1:3210`。本地开发环境在没有管理员令牌时允许访问。
-
-### 4. 生产运行
-
-生产环境必须设置非空管理员令牌，否则页面与 API 失败关闭。
-
-```powershell
-$env:VIBECOLLAB_ADMIN_TOKEN = "<long-random-secret>"
-npm run build
-npm run start
-```
-
-浏览器通过 `/login` 建立 HttpOnly、SameSite=Strict 会话；只读 API 也支持：
+安装器不会覆盖已有文件；已有 `AGENTS.md` 时只追加一个带标记的协作入口。目标仓库会得到：
 
 ```text
-Authorization: Bearer <VIBECOLLAB_ADMIN_TOKEN>
+AGENTS.md
+.ai-team/
+├─ PROJECT.md       # 长期目标、架构边界和不变量
+├─ TASK.md          # 当前任务、进度、决策和交接
+├─ SKILL.md         # 任意 AI 都能执行的通用流程
+└─ check.mjs        # 零依赖结构、进度和 PR 一致性检查
+.github/
+├─ PULL_REQUEST_TEMPLATE/repo-task-sync.md
+└─ workflows/repo-task-sync.yml
 ```
 
-不要把令牌写入仓库、Issue、PR、日志或交接包。
+首次安装后，负责人填写 `PROJECT.md` 与 `TASK.md`，然后把这些文件作为一个 PR 合入 `main`。
 
-## 把协议安装进业务仓库
+在 GitHub 的 `Settings → Branches` 中保护 `main`：要求通过 PR 合并、至少一人审批，并把 `repo-task-sync` 设为 required status check。这样任何“代码已改但共享任务状态未更新”的 PR 都无法合并。
 
-从 VibeCollab 根目录运行：
+## 两个人如何接力同一个任务
+
+### A 开发并交接
+
+1. 从最新 `main` 创建分支。
+2. 把下面这句话交给任意 AI：
+
+   > 读取 `AGENTS.md`、`.ai-team/PROJECT.md`、`.ai-team/TASK.md`；先总结目标、验收、不变量、已完成、待办和既有决策，再只实现 `TASK.md` 的下一步。
+
+3. 修改代码时同步更新 `.ai-team/TASK.md`：勾选验收项，记录完成项、决策、待办、验证结果和下一步。
+4. 代码与 `TASK.md` 放进同一个 PR。CI 通过、人工评审后 merge。
 
 ```powershell
-node skills/project-to-act-collaboration/scripts/pta.mjs init `
-  --project-root D:\code\my-app `
-  --github
+git pull --ff-only origin main
+git switch -c task/agent-001
+# 修改代码和 .ai-team/TASK.md
+node .ai-team/check.mjs --base origin/main
+git add .
+git commit -m "feat: implement agent foundation"
+git push -u origin task/agent-001
 ```
 
-目标仓库只会收到：
+### B 同步并继续
 
-- `.project-to-act/`：任务、上下文、意图、事件、证据、会话与 vendored CLI/Skill。
-- `AGENTS.md` 中带标记的通用协作规则。
-- `.github` 下的 Task、PR 和 Project-to-Act CI 模板。
-- `.gitignore` 中的本机 runtime 忽略规则。
-
-目标仓库不会收到 VibeCollab 的 `src/`、控制台、认证或产品依赖。升级受管协议文件时显式增加 `--upgrade`，账本与任务事实不会被覆盖。
-
-## 两个人接力同一个 Task
-
-双方各自 clone 同一个 GitHub 仓库，并切换到同一个任务分支。任一时刻只有一个人拥有写入权。
-
-### A 开始并开发
+B 不需要 A 的聊天记录、Memory 或上下文导出。只拉取已 merge 的提交：
 
 ```powershell
-# 创建任务
-npm run pta -- task create APP-101 --title "Add health check" --owner alice
-
-# 编辑 TASK.json 和 INTENT.json 后构建确定性上下文
-npm run pta -- context build APP-101
-
-# 使用 STATUS.json 中的 revision 做 CAS 状态转换
-npm run pta -- task transition APP-101 --state in_progress --expected-revision 1
-
-# 人工、Cursor、Claude Code、Codex、Copilot 等使用同一会话协议
-npm run pta -- session start APP-101 --actor alice --executor cursor --expected-revision 2
-
-# A 提交业务代码并运行 TASK.json 约定的检查，然后发布给 B
-git add <业务文件>
-git commit -m "feat: complete agent foundation"
-
-npm run pta -- handoff publish APP-101 `
-  --from alice `
-  --to bob `
-  --summary "Agent 基础能力已经完成" `
-  --completed "Agent contract;基础实现" `
-  --pending "工具路由" `
-  --decisions "保持单一 Agent 导出" `
-  --next-action "实现工具路由" `
-  --verification passed `
-  --checks "npm test;npm run build" `
-  --expected-revision 3 `
-  --push
+git switch main
+git pull --ff-only origin main
+git switch -c task/agent-001-next
+node .ai-team/check.mjs
 ```
 
-发布会停止 A 的会话、释放写入权、提交交接事实并推送同一任务分支。业务代码必须由 A 先明确提交，VibeCollab 不会偷偷暂存业务文件。
+然后把同一条 AI 指令交给 Codex、Cursor、Claude Code、Copilot 或其他工具。AI 先复述仓库中的共享事实；复述不一致时先修正文档，不开始写代码。
 
-### B 接收并继续
+## 如何看功能进度和代码进度
+
+运行：
 
 ```powershell
-git switch task/app-101
-
-npm run pta -- handoff accept APP-101 `
-  --actor bob `
-  --executor claude-code `
-  --pull `
-  --push
+node .ai-team/check.mjs --base origin/main
 ```
 
-接收只允许 fast-forward。如果 B 有本地修改、目标人不符、代码锚点不可达、revision 不同、上下文漂移或验证未通过，命令会拒绝接管。成功结果中的 `aiPrompt` 可以直接交给 Cursor、Claude Code、Codex、Copilot 或其他 AI。
+输出包含：
 
-也可以打开 `http://127.0.0.1:3210`，进入项目后使用“发布进度”和“接收进度”两个按钮完成相同流程。
+- 当前任务状态、Owner、下一位 Owner。
+- 验收场景完成数和百分比。
+- 相对 `origin/main` 的提交数、变更文件与增删行。
+- “改了代码但没更新 `TASK.md`”等阻断错误。
 
-给任何 AI 的最短指令：
+GitHub 上直接使用三个视图：
 
-> 读取 `AGENTS.md`、Task `<ID>` 和最新 `HANDOFF.json`；确认分支、代码锚点、Task revision 与 Context hash；先总结已完成、未完成和既有决策，再从 `nextAction` 继续，不得重新设计已确认部分。
+- 功能进度：`.ai-team/TASK.md` 的验收清单、完成项与待办。
+- 代码进度：PR 的 Files changed、Commits 和 Checks。
+- 交接状态：`TASK.md` 的 `Status`、`Owner`、`Next owner` 与 `Next step`。
 
-同一任务同时只有一个写入负责人。公共 Schema、迁移、认证、权限、支付/积分和状态机必须先确定唯一契约负责人；消费者等待契约合并后再并行。
+不要用代码行数、commit 数或 AI token 评价个人绩效；它们只描述变更规模，不代表价值。
 
-## 进度与工作量口径
+## 必须遵守的四条规则
 
-- 功能进度来自 `PROJECT_FEATURES.md` 的完成条件和证据，不从代码行数推算。
-- 任务进度来自 `STATUS.json` 的状态机。
-- AI 同步状态来自 `CONTEXT.json` 和 `INTENT.json`。
-- 代码进度展示 Git 事实：分支、worktree、staged、unstaged、untracked 和提交。
-- 会话时长是经过时间，不等于专注工时。
-- 文件数、增删行和 token 是覆盖范围，不是价值或个人绩效。
-- 缺失数据保持 `null` 或 unavailable，不显示为零。
+1. 同一任务同一时刻只有一个写入者。
+2. 代码和 `.ai-team/TASK.md` 必须在同一个 PR 中更新。
+3. B 只从已 merge 的 `main` 接力；未完成代码不能进 `main` 时，双方轮流使用同一个 Draft PR 分支。
+4. AI 对话不是事实源；影响实现的决定必须写进 `PROJECT.md` 或 `TASK.md`。
 
-## HTTP 边界
-
-| 路径                          | 方法 | 说明                             |
-| ----------------------------- | ---- | -------------------------------- |
-| `/`                           | GET  | 已注册项目列表                   |
-| `/projects/<id>`              | GET  | 单仓库协作控制台                 |
-| `/api/projects/<id>/overview` | GET  | 版本化只读概览；未知项目返回 404 |
-| `/api/projects/<id>/handoff`  | POST | 受限的发布/接收交接动作          |
-| `/api/session`                | POST | 管理员令牌登录并设置会话 Cookie  |
-| `/login`                      | GET  | 登录页面                         |
-
-项目存在但未初始化或当前不可读取时，概览 API 返回 503，并明确报告 unavailable，而不是读取其他路径或猜测数据。
-
-## 常用命令
-
-| 命令                       | 用途                                       |
-| -------------------------- | ------------------------------------------ |
-| `npm run dev`              | 在 3210 启动开发服务                       |
-| `npm run build`            | 生产构建                                   |
-| `npm run start`            | 在 3210 启动生产服务                       |
-| `npm run test`             | 运行单元测试                               |
-| `npm run lint`             | ESLint                                     |
-| `npm run typecheck`        | TypeScript 检查                            |
-| `npm run adapters:check`   | 检查可选插件与权威 Skill 是否漂移          |
-| `npm run verify`           | 格式、lint、类型、测试和生产构建完整门禁   |
-| `npm run pta -- <command>` | 管理 VibeCollab 自身的 Project-to-Act 事实 |
-| `npm run handoff:build`    | 生成源码 ZIP、Git Bundle、清单和校验值     |
-
-## 交接与恢复
-
-正式交接说明见 [docs/HANDOFF.md](docs/HANDOFF.md)。生成交接包前必须提交全部预期变更并保持工作区干净：
+## 本仓库开发
 
 ```powershell
+npm test
 npm run verify
-npm run handoff:build
 ```
 
-默认输出到 `artifacts/VibeCollab-v0.1.0-handoff/`，其中包含：
-
-- `VibeCollab-v0.1.0-source.zip`：当前 Git HEAD 的源码快照。
-- `VibeCollab-v0.1.0.bundle`：可克隆的完整 Git Bundle。
-- `README-HANDOFF.md`：独立交接说明副本。
-- `PACKAGE-MANIFEST.json`：版本、提交、分支、文件大小和哈希。
-- `SHA256SUMS.txt`：工件完整性校验。
-
-## 仓库结构
-
-```text
-VibeCollab/
-├─ src/app/                         独立页面与只读 HTTP 边界
-├─ src/components/                  协作控制台组件
-├─ src/lib/                         注册表、认证、契约与只读聚合
-├─ skills/project-to-act-collaboration/
-│  └─ ...                           权威、工具无关 Skill 与 CLI
-├─ plugins/project-to-act-collaboration/
-│  └─ ...                           可选 Codex 薄适配器
-├─ .project-to-act/                 VibeCollab 自身的项目与任务事实
-├─ docs/                            架构与正式交接文档
-├─ scripts/                         适配器同步与交接打包脚本
-├─ vibecollab.config.json           可提交的示例注册表
-└─ vibecollab.config.local.json     本机注册表，不提交
-```
-
-## 安全约束
-
-- 被观察仓库始终视为不可信输入。
-- 不执行、导入或动态加载被观察仓库源码。
-- 不返回源码正文、完整提示、思维链、令牌、邮箱或私有账户数据。
-- Git 命令只允许读取 status、worktree 和 log。
-- 生产环境无管理员令牌时失败关闭。
-- 交接包只从已提交 Git HEAD 生成，因此不会包含本机未跟踪配置与密钥。
-
-## 已知限制
-
-- v0.1.0 只注册本机仓库路径，没有 GitHub 远程仓库拉取服务。
-- runtime heartbeat 是本机临时投影；跨机器只同步耐久 session 事实。
-- 没有 SaaS 多租户、组织权限、审计数据库或计费。
-- 尚未配置独立 GitHub remote 和 GitHub Release 流程。
-- 尚未声明开源许可证；公开分发前必须由项目所有者选择并添加 LICENSE。
+本仓库内部的 `.project-to-act` 只用于维护 VibeCollab 自身，不会安装进业务仓库。协议的可分发 Skill 位于 `skills/repo-task-sync/`，模板位于 `templates/repository/`。
