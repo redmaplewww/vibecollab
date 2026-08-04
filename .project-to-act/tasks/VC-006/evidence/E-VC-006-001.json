@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "E-VC-006-001",
+  "taskId": "VC-006",
+  "checkedAt": "2026-08-05T02:10:55+08:00",
+  "publishedCommit": "f90826176dabe6c61f56405b18e0ee56757aa981",
+  "commands": [
+    { "command": "gh release view actions/checkout", "exitCode": 0, "result": "v7.0.1" },
+    { "command": "gh release view actions/setup-node", "exitCode": 0, "result": "v7.0.0" },
+    { "command": "npm.cmd run verify", "exitCode": 0 },
+    { "command": "gh run watch 30937357537 --exit-status", "exitCode": 0 }
+  ],
+  "results": {
+    "rootWorkflow": "actions/checkout@v7 and actions/setup-node@v7",
+    "installedTemplate": "actions/checkout@v7 and actions/setup-node@v7",
+    "githubActions": "Verify run 30937357537 completed successfully using both v7 actions"
+  },
+  "limitations": []
+}

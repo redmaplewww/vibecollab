@@ -7,7 +7,7 @@
 
 - 结论：v0.3.0 纯文件 PR/Merge 同步本地验收通过
 - 验收范围：无依赖安装、已有文件保护、项目/任务模板、通用 Skill、功能/Git 进度、PR 同步门禁和双 clone 接力
-- 最后检查：2026-08-05，6 项 Node 测试、Skill/治理校验、凭据扫描、公共可见性、远程 main 和首次 GitHub Actions
+- 最后检查：2026-08-05，6 项 Node 测试、Skill/治理校验、凭据扫描、公共可见性、远程 main 和 Actions v7 CI
 - 遗留问题：尚未选择 LICENSE；单写入者依赖 GitHub 分支保护与团队纪律
 
 ## 验收标准
@@ -32,6 +32,7 @@
 | E-003   | 2026-08-03 | `npm run verify`；仓库/Skill/adapter 校验；真实 A/B 双 clone；浏览器检查            | 0        | Context `31d222c…d9a4ee`；文件哈希见证据        | 5 测试、构建、发布、错误接收者拒绝、快进接管和唯一写入者通过         | `.project-to-act/tasks/VC-003/evidence/E-VC-003-001.json` | Handoff 协议、CLI 或接力 UI 变化前 |
 | E-004   | 2026-08-04 | `npm run verify`；Skill/治理校验；代码-only 反例；Alice/Bob 双 clone merge          | 0        | 实现提交 `bb2193f`；核心文件哈希见证据          | 6 测试、无依赖安装、冲突保护、功能/Git 进度和跨 clone 恢复通过       | `.project-to-act/tasks/VC-004/evidence/E-VC-004-001.json` | 模板、安装器、校验器或 Skill 变化前 |
 | E-005   | 2026-08-05 | 凭据扫描；`gh repo view`；匿名 HTTP；`git ls-remote`；GitHub Actions                 | 0        | 发布内容提交 `1a39e78`                         | Public、匿名 200、main 一致、元数据与首次 Verify workflow 通过       | `.project-to-act/tasks/VC-005/evidence/E-VC-005-001.json` | 可见性、README、remote 或 CI 变化前 |
+| E-006   | 2026-08-05 | 官方 action release；`npm run verify`；GitHub Actions v7 workflow                   | 0        | 发布提交 `f908261`                              | 根工作流和安装模板使用 checkout/setup-node v7，公共 Verify 通过      | `.project-to-act/tasks/VC-006/evidence/E-VC-006-001.json` | Actions 版本或工作流变化前          |
 
 ## Gate 记录
 
@@ -47,6 +48,7 @@
 
 按时间倒序追加：日期、检查范围、证据 ID、结果、遗留问题和结论。失败、跳过与过期证据也必须如实记录。
 
+- 2026-08-05：VC-006 验收通过；官方 Actions v7 已同步到根工作流与安装模板，公共 main CI 成功且不再使用弃用的 v4 runtime；证据 E-006。
 - 2026-08-05：VC-005 公共发布验收通过；仓库匿名可访问、默认分支 main、发布 SHA 一致且首次 GitHub Actions 成功；证据 E-005。
 - 2026-08-04：VC-004 本地验收通过；校验器拒绝代码-only PR，Alice 的代码与 TASK 同 PR 合并后 Bob 仅从 main 恢复目标、决策和下一步；证据 E-004。
 - 2026-08-04：VC-004 已启动，纯文件协议尚未验收；旧 v0.2.0 证据不覆盖新路线。
