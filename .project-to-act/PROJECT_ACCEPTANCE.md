@@ -7,8 +7,8 @@
 
 - 结论：v0.3.0 纯文件 PR/Merge 同步本地验收通过
 - 验收范围：无依赖安装、已有文件保护、项目/任务模板、通用 Skill、功能/Git 进度、PR 同步门禁和双 clone 接力
-- 最后检查：2026-08-04，6 项 Node 测试、分发检查、Skill 校验、治理校验和真实 Alice/Bob merge 旅程
-- 遗留问题：尚未创建独立 GitHub remote；公开分发前需选择许可证；单写入者依赖分支保护与团队纪律
+- 最后检查：2026-08-05，6 项 Node 测试、Skill/治理校验、凭据扫描、公共可见性、远程 main 和首次 GitHub Actions
+- 遗留问题：尚未选择 LICENSE；单写入者依赖 GitHub 分支保护与团队纪律
 
 ## 验收标准
 
@@ -21,6 +21,7 @@
 | A-005   | 交接包可验证并可在空目录恢复 | 通过 | Bundle verify/clone、ZIP 边界、`npm ci` 与完整门禁 | E-002   |
 | A-006   | 两人可顺序接力同一个 Task    | 通过 | 双 clone publish/push、拒绝错误接收者、accept/pull | E-003   |
 | A-007   | 纯文件即可同步代码与 AI 上下文 | 通过 | 空仓库安装、反例门禁、PR merge 后 Bob 独立恢复     | E-004   |
+| A-008   | 公共 GitHub 仓库可直接使用     | 通过 | 匿名 HTTP、Public visibility、远程 main 与 Actions | E-005   |
 
 ## 证据索引
 
@@ -30,6 +31,7 @@
 | E-002   | 2026-08-02 | `handoff:build`；bundle verify/clone；ZIP allow/deny；恢复后 `npm ci` 与 `verify`   | 0        | 恢复验证提交 `91aadeb`；最终哈希见包内 manifest | 141 个 ZIP 项边界通过、LF 通过、4 测试与生产构建通过                 | `.project-to-act/tasks/VC-002/evidence/E-VC-002-001.json` | README、依赖、打包脚本或版本变化前 |
 | E-003   | 2026-08-03 | `npm run verify`；仓库/Skill/adapter 校验；真实 A/B 双 clone；浏览器检查            | 0        | Context `31d222c…d9a4ee`；文件哈希见证据        | 5 测试、构建、发布、错误接收者拒绝、快进接管和唯一写入者通过         | `.project-to-act/tasks/VC-003/evidence/E-VC-003-001.json` | Handoff 协议、CLI 或接力 UI 变化前 |
 | E-004   | 2026-08-04 | `npm run verify`；Skill/治理校验；代码-only 反例；Alice/Bob 双 clone merge          | 0        | 实现提交 `bb2193f`；核心文件哈希见证据          | 6 测试、无依赖安装、冲突保护、功能/Git 进度和跨 clone 恢复通过       | `.project-to-act/tasks/VC-004/evidence/E-VC-004-001.json` | 模板、安装器、校验器或 Skill 变化前 |
+| E-005   | 2026-08-05 | 凭据扫描；`gh repo view`；匿名 HTTP；`git ls-remote`；GitHub Actions                 | 0        | 发布内容提交 `1a39e78`                         | Public、匿名 200、main 一致、元数据与首次 Verify workflow 通过       | `.project-to-act/tasks/VC-005/evidence/E-VC-005-001.json` | 可见性、README、remote 或 CI 变化前 |
 
 ## Gate 记录
 
@@ -39,11 +41,13 @@
 | G-002   | 2026-08-02 | v0.1.0 交接     | 源码、Git 历史、文档、校验与恢复              | 通过 | E-002   | GitHub Release 和 LICENSE 后续处理            |
 | G-003   | 2026-08-03 | v0.2.0 顺序接力 | CLI、Git 门禁、API、Skill、Web 与真实双 clone | 通过 | E-003   | 独立 GitHub remote 上的真实团队试运行后续处理 |
 | G-004   | 2026-08-04 | v0.3.0 纯文件同步 | 模板、安装/校验、Skill、PR 门禁与双 clone       | 通过 | E-004   | 真实 GitHub protected branch 试运行待完成     |
+| G-005   | 2026-08-05 | v0.3.0 公共发布   | Public 可见性、README、远程 main、元数据与 CI   | 通过 | E-005   | LICENSE 与 branch protection 由所有者后续设置 |
 
 ## 验收记录
 
 按时间倒序追加：日期、检查范围、证据 ID、结果、遗留问题和结论。失败、跳过与过期证据也必须如实记录。
 
+- 2026-08-05：VC-005 公共发布验收通过；仓库匿名可访问、默认分支 main、发布 SHA 一致且首次 GitHub Actions 成功；证据 E-005。
 - 2026-08-04：VC-004 本地验收通过；校验器拒绝代码-only PR，Alice 的代码与 TASK 同 PR 合并后 Bob 仅从 main 恢复目标、决策和下一步；证据 E-004。
 - 2026-08-04：VC-004 已启动，纯文件协议尚未验收；旧 v0.2.0 证据不覆盖新路线。
 - 2026-08-03：VC-003 本地验收通过；Alice 发布并推送，Charlie 被目标门禁拒绝，Bob 快进接收并成为唯一写入者；Web 主流程收敛为发布/接收，复杂监控降为二级详情；证据 E-003。

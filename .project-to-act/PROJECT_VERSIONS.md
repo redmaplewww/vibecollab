@@ -5,7 +5,7 @@
 ## 当前版本
 
 - 版本号：`0.3.0`
-- 发布状态：纯文件 PR/Merge 同步本地验收通过，公共 GitHub 发布中
+- 发布状态：已发布公共 GitHub 仓库 `https://github.com/redmaplewww/vibecollab`
 - 兼容性说明：破坏性替换 v0.2 运行时控制面；目标仓库仅要求 Node.js 20+ 与 Git/GitHub
 - 最后更新：2026-08-05
 
@@ -19,6 +19,6 @@
 
 按时间倒序追加：版本号、日期、状态、主要变更、原因、兼容性、证据 ID 和 Gate 结果。
 
-- `0.3.0`，2026-08-04，本地验收通过；纯文件模板、通用 Skill、零依赖安装/校验、GitHub PR required check 和双 clone merge 接力；证据 E-004；Gate G-004 通过。
+- `0.3.0`，2026-08-05，公共发布；纯文件模板、通用 Skill、零依赖安装/校验、GitHub PR required check 和双 clone merge 接力；公共仓库与首次 Actions 验证通过；证据 E-004、E-005；Gate G-004、G-005 通过。
 - `0.2.0`，2026-08-03，本地验收通过；同一 Task 发布/接收、受限 Git 同步、四项一致性门禁、唯一写入者和聚焦接力台；证据 E-003；Gate G-003 通过。
 - `0.1.0`，2026-08-02，本地交接就绪；独立控制面、allowlist、多仓库读取、工具无关 Skill、薄安装、安全门禁、源码 ZIP、Git Bundle 与恢复演练；证据 E-001、E-002；Gate G-001、G-002 通过。

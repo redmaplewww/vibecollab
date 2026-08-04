@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "E-VC-005-001",
+  "taskId": "VC-005",
+  "checkedAt": "2026-08-05T02:06:45+08:00",
+  "publishedContentCommit": "1a39e78c2fa0cdc14dfde806c039195198de813c",
+  "repository": "https://github.com/redmaplewww/vibecollab",
+  "commands": [
+    { "command": "npm.cmd run verify", "exitCode": 0 },
+    { "command": "skill-creator quick_validate.py skills/repo-task-sync", "exitCode": 0 },
+    { "command": "current tree and git log common credential pattern scan", "exitCode": 0 },
+    { "command": "gh repo view redmaplewww/vibecollab --json visibility,url,defaultBranchRef", "exitCode": 0 },
+    { "command": "curl anonymous GitHub repository URL", "exitCode": 0 },
+    { "command": "gh run watch 30937042231 --exit-status", "exitCode": 0 }
+  ],
+  "results": {
+    "visibility": "PUBLIC",
+    "anonymousHttpStatus": 200,
+    "defaultBranch": "main",
+    "remoteMain": "1a39e78c2fa0cdc14dfde806c039195198de813c",
+    "githubActions": "Verify run 30937042231 completed successfully",
+    "metadata": "Description and topics ai-coding, collaboration, git, pull-requests, vibe-coding are present",
+    "credentials": "No common GitHub/OpenAI token pattern matched the current tree or complete Git history"
+  },
+  "limitations": [
+    "No LICENSE has been added because the user has not selected legal terms",
+    "GitHub branch protection remains a repository-owner setting documented in README"
+  ]
+}
