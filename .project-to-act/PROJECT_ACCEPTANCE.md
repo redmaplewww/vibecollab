@@ -5,10 +5,10 @@
 
 ## 当前验收结论
 
-- 结论：v0.2.0 单 Task 顺序接力本地验收通过
-- 验收范围：发布/接收 CLI、受限 Git 同步、四项一致性门禁、唯一写入者、AI 续写提示、Web 接力台和旧能力回归
-- 最后检查：2026-08-03，5 项测试、生产构建、Skill/adapter/仓库校验、浏览器检查和真实双 clone Git 旅程
-- 遗留问题：尚未创建独立 GitHub remote；验证结果为 actor attestation；公开分发前需选择许可证
+- 结论：v0.3.0 纯文件 PR/Merge 同步本地验收通过
+- 验收范围：无依赖安装、已有文件保护、项目/任务模板、通用 Skill、功能/Git 进度、PR 同步门禁和双 clone 接力
+- 最后检查：2026-08-04，6 项 Node 测试、分发检查、Skill 校验、治理校验和真实 Alice/Bob merge 旅程
+- 遗留问题：尚未创建独立 GitHub remote；公开分发前需选择许可证；单写入者依赖分支保护与团队纪律
 
 ## 验收标准
 
@@ -20,6 +20,7 @@
 | A-004   | 阻塞与重大遗留问题已处理     | 通过 | AgentLoop 误嵌入代码已撤回且工作区干净             | E-001   |
 | A-005   | 交接包可验证并可在空目录恢复 | 通过 | Bundle verify/clone、ZIP 边界、`npm ci` 与完整门禁 | E-002   |
 | A-006   | 两人可顺序接力同一个 Task    | 通过 | 双 clone publish/push、拒绝错误接收者、accept/pull | E-003   |
+| A-007   | 纯文件即可同步代码与 AI 上下文 | 通过 | 空仓库安装、反例门禁、PR merge 后 Bob 独立恢复     | E-004   |
 
 ## 证据索引
 
@@ -28,6 +29,7 @@
 | E-001   | 2026-08-02 | `npm run verify`；Skill/adapter 校验；空仓库安装；浏览器读取 AgentLoop；`npm audit` | 0        | 任务 Context Hash 见 VC-001                     | 4 单测、类型、lint、构建、0 漏洞；薄安装无平台源码；真实仓库监控可见 | `.project-to-act/tasks/VC-001/evidence/E-VC-001-001.json` | 协议、依赖或监控实现变化前         |
 | E-002   | 2026-08-02 | `handoff:build`；bundle verify/clone；ZIP allow/deny；恢复后 `npm ci` 与 `verify`   | 0        | 恢复验证提交 `91aadeb`；最终哈希见包内 manifest | 141 个 ZIP 项边界通过、LF 通过、4 测试与生产构建通过                 | `.project-to-act/tasks/VC-002/evidence/E-VC-002-001.json` | README、依赖、打包脚本或版本变化前 |
 | E-003   | 2026-08-03 | `npm run verify`；仓库/Skill/adapter 校验；真实 A/B 双 clone；浏览器检查            | 0        | Context `31d222c…d9a4ee`；文件哈希见证据        | 5 测试、构建、发布、错误接收者拒绝、快进接管和唯一写入者通过         | `.project-to-act/tasks/VC-003/evidence/E-VC-003-001.json` | Handoff 协议、CLI 或接力 UI 变化前 |
+| E-004   | 2026-08-04 | `npm run verify`；Skill/治理校验；代码-only 反例；Alice/Bob 双 clone merge          | 0        | 实现提交 `bb2193f`；核心文件哈希见证据          | 6 测试、无依赖安装、冲突保护、功能/Git 进度和跨 clone 恢复通过       | `.project-to-act/tasks/VC-004/evidence/E-VC-004-001.json` | 模板、安装器、校验器或 Skill 变化前 |
 
 ## Gate 记录
 
@@ -36,11 +38,13 @@
 | G-001   | 2026-08-02 | v0.1.0 独立化   | 平台边界、Skill 分发、监控与安全              | 通过 | E-001   | GitHub remote 与移动真机后续验证              |
 | G-002   | 2026-08-02 | v0.1.0 交接     | 源码、Git 历史、文档、校验与恢复              | 通过 | E-002   | GitHub Release 和 LICENSE 后续处理            |
 | G-003   | 2026-08-03 | v0.2.0 顺序接力 | CLI、Git 门禁、API、Skill、Web 与真实双 clone | 通过 | E-003   | 独立 GitHub remote 上的真实团队试运行后续处理 |
+| G-004   | 2026-08-04 | v0.3.0 纯文件同步 | 模板、安装/校验、Skill、PR 门禁与双 clone       | 通过 | E-004   | 真实 GitHub protected branch 试运行待完成     |
 
 ## 验收记录
 
 按时间倒序追加：日期、检查范围、证据 ID、结果、遗留问题和结论。失败、跳过与过期证据也必须如实记录。
 
+- 2026-08-04：VC-004 本地验收通过；校验器拒绝代码-only PR，Alice 的代码与 TASK 同 PR 合并后 Bob 仅从 main 恢复目标、决策和下一步；证据 E-004。
 - 2026-08-04：VC-004 已启动，纯文件协议尚未验收；旧 v0.2.0 证据不覆盖新路线。
 - 2026-08-03：VC-003 本地验收通过；Alice 发布并推送，Charlie 被目标门禁拒绝，Bob 快进接收并成为唯一写入者；Web 主流程收敛为发布/接收，复杂监控降为二级详情；证据 E-003。
 - 2026-08-02：VC-002 交接验收通过；首次恢复暴露 Windows CRLF 问题，修正后 Bundle、ZIP、`npm ci`、完整门禁和生产构建通过；证据 E-002；交接工件精确哈希由包内 manifest 提供。

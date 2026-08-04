@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "E-VC-004-001",
+  "taskId": "VC-004",
+  "checkedAt": "2026-08-04T06:13:17.605Z",
+  "implementationCommit": "bb2193f3a344868799e0ddb5aa4b7d895ec6d7f5",
+  "contextHash": "d1c0c5dcb2405eb801fe04916160563076acb66253a33774c8efcc98d1935481",
+  "commands": [
+    { "command": "npm.cmd run verify", "exitCode": 0 },
+    { "command": "skill-creator quick_validate.py skills/repo-task-sync", "exitCode": 0 },
+    { "command": "node .project-to-act/bin/pta.mjs validate --project-root .", "exitCode": 0 },
+    { "command": "git diff --check", "exitCode": 0 },
+    { "command": "local bare remote + maintainer/Alice/Bob clone PR-merge-equivalent journey", "exitCode": 0 }
+  ],
+  "results": {
+    "tests": "6 Node.js tests passed with no package dependencies",
+    "negativeGate": "Code-only change was rejected until .ai-team/TASK.md changed in the same comparison",
+    "workingTree": "Uncommitted and untracked local work was included in the validation view",
+    "gitJourney": "Alice pushed a task branch, maintainer created a no-fast-forward PR-equivalent merge, and Bob fast-forwarded main with identical code and task decisions",
+    "distribution": "Empty repository installation, existing AGENTS.md preservation, conflict refusal, installed Skill equality, and standalone installed checker passed"
+  },
+  "fileHashes": {
+    "scripts/install.mjs": "30e9f24366664a058d3e1ed16742ffaaa674e11c17fb0c63253a68b15591b3ef",
+    "scripts/check.mjs": "43f009034cffe8afb4a71b97587269faaf953285bce8f6d4150ca871a0a9dbd7",
+    "skills/repo-task-sync/SKILL.md": "0f130376f6cefa7e88f2f74eef1db2921ab1747ed5ea2f0afbf5b51e8c034c0a",
+    "templates/repository/.ai-team/TASK.md": "cdfd33d4bc1b75b705efcf61f9be1213aec8ea02b207e64a149b4b9442595cc8"
+  },
+  "limitations": [
+    "The repository has no configured GitHub remote, so the PR flow was verified with a real local bare remote and a no-fast-forward merge",
+    "One-writer ownership still depends on branch protection and team process; repository files cannot prevent an authorized user from intentionally bypassing policy"
+  ]
+}

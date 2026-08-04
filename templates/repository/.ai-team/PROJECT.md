@@ -27,4 +27,3 @@ Describe the product outcome this repository exists to deliver.
 - Install: replace with the repository install command.
 - Test: replace with the required test command.
 - Verify: replace with the complete local gate command.
-

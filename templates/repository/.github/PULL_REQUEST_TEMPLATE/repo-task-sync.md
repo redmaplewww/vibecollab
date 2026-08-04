@@ -14,4 +14,3 @@
 - [ ] Acceptance, decisions, completed work, pending work, and next step are current.
 - [ ] The next developer can continue without my AI chat or local memory.
 - [ ] Required checks passed on the latest commit.
-

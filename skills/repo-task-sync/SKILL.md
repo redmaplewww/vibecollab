@@ -47,4 +47,3 @@ Use these states:
 ## Report progress
 
 Run `node .ai-team/check.mjs --base <target-branch>`. Report functional progress from acceptance checkboxes and code progress from Git commits, changed files, additions, and deletions. Use these values for coordination and review coverage, never as individual performance scores.
-

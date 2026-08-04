@@ -7,4 +7,3 @@ Keep one writer for the active task. Put code changes and `.ai-team/TASK.md` pro
 
 Run the checks listed in `.ai-team/TASK.md` plus `node .ai-team/check.mjs --base <main-base>`. Report actual evidence and any specification deviation.
 <!-- repo-task-sync:end -->
-

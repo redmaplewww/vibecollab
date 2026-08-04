@@ -16,4 +16,3 @@ try {
 } finally {
   rmSync(target, { recursive: true, force: true });
 }
-

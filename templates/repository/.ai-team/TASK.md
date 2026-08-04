@@ -43,4 +43,3 @@ Fill this file, assign one owner, and open the first implementation PR.
 - From: `unassigned`
 - To: `unassigned`
 - Summary: No handoff has occurred.
-
