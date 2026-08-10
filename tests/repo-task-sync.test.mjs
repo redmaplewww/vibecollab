@@ -289,10 +289,12 @@ test("private installation records Codex hook events into one low-priority Markd
     };
     const common = { session_id: "thr_private_1", cwd: root, model: "codex-test" };
     const hooks = JSON.parse(readFileSync(resolve(root, ".codex/hooks.json"), "utf8"));
-    const windowsCommand = hooks.hooks.SessionStart[0].hooks[0].commandWindows;
+    const hook = hooks.hooks.SessionStart[0].hooks[0];
+    const platformCommand = process.platform === "win32" ? hook.commandWindows : hook.command;
+    assert.equal(typeof platformCommand, "string");
     const nestedCwd = resolve(root, "nested/workspace");
     mkdirSync(nestedCwd, { recursive: true });
-    const windowsStart = spawnSync(windowsCommand, {
+    const platformStart = spawnSync(platformCommand, {
         cwd: nestedCwd,
         encoding: "utf8",
         input: JSON.stringify({
@@ -306,7 +308,7 @@ test("private installation records Codex hook events into one low-priority Markd
         shell: true,
         windowsHide: true,
       });
-    assert.equal(windowsStart.status, 0, windowsStart.stderr || windowsStart.stdout);
+    assert.equal(platformStart.status, 0, platformStart.stderr || platformStart.stdout);
     send({
       ...common,
       hook_event_name: "UserPromptSubmit",
