@@ -7,6 +7,7 @@ import test from "node:test";
 
 import { installRepositoryFiles } from "../scripts/install.mjs";
 import { validateRepository } from "../scripts/check.mjs";
+import { extractTokenUsageFromTranscript } from "../scripts/session.mjs";
 
 function git(root, ...args) {
   return execFileSync("git", args, { cwd: root, encoding: "utf8", windowsHide: true }).trim();
@@ -204,6 +205,59 @@ test("installed checker runs without package dependencies", () => {
   }
 });
 
+test("one setup command installs, diagnoses, and reports a private Git repository", () => {
+  const root = mkdtempSync(resolve(tmpdir(), "vibecollab-one-command-"));
+  try {
+    git(root, "init", "-b", "main");
+    configureGit(root, "Alice");
+    const cli = resolve("scripts/cli.mjs");
+    const run = (...args) => {
+      const result = spawnSync(process.execPath, [cli, ...args, "--target", root, "--json"], {
+        cwd: root,
+        encoding: "utf8",
+        windowsHide: true,
+      });
+      assert.equal(result.status, 0, result.stderr || result.stdout);
+      return JSON.parse(result.stdout);
+    };
+
+    const setup = run("setup", "--private");
+    assert.equal(setup.ok, true);
+    assert.equal(setup.actor, "Alice");
+    assert.equal(setup.privateSessions, true);
+    assert.equal(existsSync(resolve(root, ".codex/hooks.json")), true);
+
+    const doctor = run("doctor");
+    assert.equal(doctor.ok, true);
+    assert.equal(doctor.checks.gitIdentity, true);
+    assert.equal(doctor.checks.privateHook, true);
+
+    const report = run("report");
+    assert.equal(report.ok, true);
+    assert.equal(report.sessions.enabled, true);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("transcript token parser fails closed when the numeric Codex event is absent", () => {
+  const root = mkdtempSync(resolve(tmpdir(), "vibecollab-transcript-fallback-"));
+  try {
+    const path = resolve(root, "changed-format.jsonl");
+    writeFileSync(
+      path,
+      `${JSON.stringify({ type: "event_msg", payload: { type: "user_message", message: "do not copy me" } })}\nnot-json\n`,
+      "utf8",
+    );
+    const usage = extractTokenUsageFromTranscript(path);
+    assert.equal(usage.availability, "unavailable");
+    assert.equal(usage.reason, "supported-token-event-not-found");
+    assert.equal(usage.totalTokens, null);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("private installation records Codex hook events into one low-priority Markdown per session", () => {
   const root = mkdtempSync(resolve(tmpdir(), "vibecollab-private-session-"));
   try {
@@ -260,11 +314,36 @@ test("private installation records Codex hook events into one low-priority Markd
       prompt: "实现暂停与恢复；恢复后不得重复执行。",
       timestamp: "2026-08-10T02:01:00.000Z",
     });
+    const transcriptPath = resolve(root, "private-codex-transcript.jsonl");
+    const transcriptSecret = "TRANSCRIPT_SECRET_MUST_NEVER_BE_COPIED";
+    writeFileSync(
+      transcriptPath,
+      [
+        JSON.stringify({ type: "event_msg", payload: { type: "user_message", message: transcriptSecret } }),
+        JSON.stringify({
+          type: "event_msg",
+          payload: {
+            type: "token_count",
+            info: {
+              total_token_usage: {
+                input_tokens: 180,
+                cached_input_tokens: 40,
+                output_tokens: 30,
+                reasoning_output_tokens: 12,
+                total_tokens: 222,
+              },
+            },
+          },
+        }),
+      ].join("\n") + "\n",
+      "utf8",
+    );
     send({
       ...common,
       hook_event_name: "Stop",
       turn_id: "turn-1",
       last_assistant_message: "已实现暂停、幂等恢复和状态机测试。",
+      transcript_path: transcriptPath,
       timestamp: "2026-08-10T02:10:00.000Z",
     });
     send({ ...common, hook_event_name: "SessionEnd", reason: "other", timestamp: "2026-08-10T02:12:00.000Z" });
@@ -302,7 +381,11 @@ test("private installation records Codex hook events into one low-priority Markd
     assert.match(markdown, /实现暂停与恢复；恢复后不得重复执行。/);
     assert.match(markdown, /已实现暂停、幂等恢复和状态机测试。/);
     assert.match(markdown, /elapsed_seconds: 720/);
-    assert.match(markdown, /token_availability: "unavailable"/);
+    assert.match(markdown, /token_availability: "reported"/);
+    assert.match(markdown, /token_source: "codex-transcript"/);
+    assert.match(markdown, /token_parser_version: 1/);
+    assert.match(markdown, /total_tokens: 222/);
+    assert.doesNotMatch(markdown, new RegExp(transcriptSecret));
     assert.doesNotMatch(markdown, /chain.of.thought/i);
     assert.equal(existsSync(resolve(root, ".ai-team/sessions/2026-08/thr_private_2.md")), true);
 
@@ -311,8 +394,8 @@ test("private installation records Codex hook events into one low-priority Markd
     assert.equal(checked.sessions.enabled, true);
     assert.equal(checked.sessions.totals.sessions, 2);
     assert.deepEqual(checked.sessions.byActor, { alice: 1, bob: 1 });
-    assert.deepEqual(checked.sessions.totals.tokenCoverage, { reported: 1, total: 2 });
-    assert.equal(checked.sessions.totals.totalTokens, 150);
+    assert.deepEqual(checked.sessions.totals.tokenCoverage, { reported: 2, total: 2 });
+    assert.equal(checked.sessions.totals.totalTokens, 372);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

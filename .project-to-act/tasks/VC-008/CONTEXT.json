@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-008",
+  "baseSha": "ca10b34d110d23ae40848ff0af846fd575a80bf0",
+  "inputs": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "91396ad5b6dc665841f20f1aa05cfee712f30e5c8b380a9a49b60704d42e2462",
+      "bytes": 1459,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/PROJECT_OVERVIEW.md",
+      "sha256": "87c282d76858a74718122a2912ed268b2428766488d02537ec9238410391df40",
+      "bytes": 6637,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/COLLABORATION_CONFIG.json",
+      "sha256": "5dee6b22c829fe7e01fb5b8491a69853498d6c24aa785c758763042c92b85fcd",
+      "bytes": 543,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/skill/SKILL.md",
+      "sha256": "ef4702dd4e6d7ba67526aa91b691884df7e1416bccf95e28f0eb75db63efe464",
+      "bytes": 4043,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/tasks/VC-008/TASK.json",
+      "sha256": "83439914caed292dc1e2bd2e93207d956d55ec95bb1201f937adab0d9637adfd",
+      "bytes": 4744,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/tasks/VC-008/INTENT.json",
+      "sha256": "f57d7c294bfac41b4b97fdd19075840f9000ae0cd72b66287509b8df4245ecc6",
+      "bytes": 704,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": "README.md",
+      "sha256": "7833a0de04e8088306e2043f9506a263154926f8972a6b1216c7da43ba1b089c",
+      "bytes": 4679,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": "scripts/install.mjs",
+      "sha256": "1d56b889d3cd0a89338be874650c8bc27d1459b1760530207122c136d00838c8",
+      "bytes": 4533,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": "scripts/session.mjs",
+      "sha256": "876da661a51466a457f44aa28fecbff00a2c8ea7ad0e9d3f2a641aee768aa8b7",
+      "bytes": 24126,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": "scripts/check.mjs",
+      "sha256": "7719414f3bd98c3b31b61055422cc7a533a4a96d4c659c1107dbbb80ff41a4d9",
+      "bytes": 8891,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": "skills/repo-task-sync/SKILL.md",
+      "sha256": "62f70ba983f9a1c645541c574bf7cf82e7a61ce65cf5fefb5d4b626923da9a7c",
+      "bytes": 5546,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": "templates/private-session/.codex/hooks.json",
+      "sha256": "f1c7157eace36da10aeec8b87dc9f100f42fb5fc39638c100950e5c41d038df2",
+      "bytes": 1807,
+      "normalization": "utf8-lf"
+    }
+  ],
+  "createdAt": "2026-08-10T03:24:08.766Z",
+  "contextHash": "59b4d898b24f1778e7d0f0f6f20b229163e506e69e75606031642961709d174e"
+}

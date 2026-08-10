@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-008",
+  "revision": 0,
+  "baseSha": "ca10b34d110d23ae40848ff0af846fd575a80bf0",
+  "paths": [
+    "scripts/**",
+    "templates/**",
+    "skills/repo-task-sync/**",
+    "tests/**",
+    "AGENTS.md",
+    "README.md",
+    "package.json",
+    "package-lock.json",
+    ".project-to-act/PROJECT_*.md",
+    ".project-to-act/tasks/VC-008/**"
+  ],
+  "symbols": [
+    "runCli",
+    "installRepositoryFiles",
+    "extractTokenUsageFromTranscript",
+    "recordHookEvent",
+    "buildSessionReport",
+    "validateRepository"
+  ],
+  "contractsWrite": [
+    "vibecollab-cli-v1",
+    "private-session-markdown-v2",
+    "codex-transcript-token-parser-v1"
+  ],
+  "migrations": false
+}

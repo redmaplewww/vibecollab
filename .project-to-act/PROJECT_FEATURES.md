@@ -21,11 +21,13 @@
 | F-004   | 单 Task 双人顺序接力        | P0     | 已完成 | F-002 | A 发布后 B 通过代码、revision、context 与验证四项门禁接管       | E-003   |
 | F-005   | 纯文件 PR/Merge 上下文同步  | P0     | 已完成 | 无    | 无服务安装；代码与 TASK 同 PR；另一 clone 合并后恢复完整上下文  | E-004   |
 | F-006   | 私有仓库 Session 会话账本   | P0     | 已完成 | F-005 | 默认关闭；Private 门禁、Codex Hook、独立 Markdown、统计与拒绝公开采集通过 | E-007   |
+| F-007   | 一键安装与无感工作量采集     | P0     | 已完成 | F-006 | setup/doctor/report、Git 身份自动识别、Token 数值降级与分发包测试通过 | E-008   |
 
 ## 功能变更历史
 
 按时间倒序追加：日期、功能 ID、变化、原因、影响、证据 ID 和确认来源。
 
+- 2026-08-10：F-007 达到本地完成条件；打包后的 `vibecollab` bin 可独立安装运行，一条 setup 命令可配置 Private 仓库，doctor/report 可统一诊断与统计；10 项测试证明 Token 数值降级、秘密 transcript 文本不落盘和未知格式失败关闭；证据 E-008。
 - 2026-08-10：F-006 达到本地完成条件；双 Actor 生成不同 Session 路径，Windows Hook 可从子目录定位仓库，用户原文/AI 最终响应/耗时/Git/可用 Token 进入低优先级 Markdown，公开策略失败关闭；证据 E-007。
 - 2026-08-10：新增 F-006 并设为进行中；在纯文件主流程上增加显式 Private 才启用的低优先级 Session 账本，原始用户提交与最终 AI 响应通过 Git 共享，Token 缺失时标记 unavailable；确认来源：用户批准开发。
 - 2026-08-04：F-005 完成本地验收；安装保护已有文件，校验器同时报告功能/Git 进度并阻断代码与任务状态脱节，Alice/Bob 跨 clone 接力通过；证据 E-004。

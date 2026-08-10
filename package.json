@@ -1,6 +1,6 @@
 {
   "name": "vibecollab",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "File-only context synchronization for human and AI coding teams through Git pull requests.",
   "private": true,
   "type": "module",
@@ -19,6 +19,16 @@
   "engines": {
     "node": ">=20"
   },
+  "bin": {
+    "vibecollab": "scripts/cli.mjs"
+  },
+  "files": [
+    "scripts/",
+    "skills/",
+    "templates/",
+    "AGENTS.md",
+    "README.md"
+  ],
   "scripts": {
     "init": "node scripts/install.mjs",
     "check": "node scripts/check.mjs",

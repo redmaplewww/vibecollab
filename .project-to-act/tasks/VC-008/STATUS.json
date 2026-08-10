@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-008",
+  "state": "done",
+  "revision": 7,
+  "owner": "codex",
+  "branch": "codex/vc-008-frictionless-setup",
+  "contextHash": "59b4d898b24f1778e7d0f0f6f20b229163e506e69e75606031642961709d174e",
+  "updatedAt": "2026-08-10T03:24:19.664Z",
+  "lastCheckpoint": null,
+  "activeSessionId": null,
+  "currentActor": null,
+  "handoffState": null,
+  "handoffId": null
+}

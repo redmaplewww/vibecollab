@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-008",
+  "title": "一键安装与无感 Codex 工作记录",
+  "owner": "codex",
+  "goal": "把私有仓库 Codex 工作记录收敛为一条安装命令、一次 Hook 信任、之后零手动维护，并提供无需服务端的诊断与统计入口。",
+  "reason": "现有 --private-sessions 能工作，但用户仍需理解安装脚本、Hook、环境变量和底层报表命令；Token 在 Hook 未直接提供时不可见。",
+  "currentBehavior": "管理员需运行 scripts/install.mjs 并记住 --private-sessions；成员可能手工设置 actor；诊断与报表入口分散；Hook 事件无 Token 时只能显示 unavailable。",
+  "expectedBehavior": "通过 vibecollab setup --private 在当前 Git 仓库完成安装和自检；actor 自动读取 git config；成员只需首次信任 Hook；doctor/report 提供统一入口；Token 优先读取稳定 Hook 字段，缺失时仅从本机 transcript_path 提取数值型累计用量且绝不复制 transcript 文本，格式变化时安全降级。",
+  "scope": {
+    "allowed": [
+      "scripts/cli.mjs",
+      "scripts/install.mjs",
+      "scripts/session.mjs",
+      "scripts/check.mjs",
+      "scripts/check-distribution.mjs",
+      "templates/**",
+      "skills/repo-task-sync/**",
+      "tests/**",
+      "AGENTS.md",
+      "README.md",
+      "package.json",
+      "package-lock.json",
+      ".project-to-act/PROJECT_*.md",
+      ".project-to-act/tasks/VC-008/**"
+    ],
+    "nonGoals": [
+      "部署 Web 服务、数据库、账号系统或中心采集器",
+      "采集思维链、系统提示、工具原始输出或逐键键盘行为",
+      "把不稳定 transcript JSONL 视为长期稳定接口",
+      "自动提交、推送、合并或部署用户代码",
+      "覆盖目标仓库已存在的协作文件"
+    ]
+  },
+  "invariants": [
+    "默认安装仍不启用原始会话采集，必须显式使用 --private",
+    "原始用户消息仅允许写入 repositoryVisibility=private 的仓库",
+    "transcript_path 解析器只读取数值型 token_count 用量，绝不持久化 transcript 原文",
+    "Hook 或 transcript 字段缺失、未知或损坏时显示 unavailable，不猜测 Token",
+    "安装不要求环境变量，成员身份默认来自本仓库 git config user.name",
+    "安装器不得覆盖目标仓库已有文件"
+  ],
+  "authoritativeContext": [
+    "AGENTS.md",
+    "README.md",
+    "scripts/install.mjs",
+    "scripts/session.mjs",
+    "scripts/check.mjs",
+    "skills/repo-task-sync/SKILL.md",
+    "templates/private-session/.codex/hooks.json"
+  ],
+  "dependencies": [],
+  "contracts": {
+    "read": [
+      "Git repository metadata and local git config",
+      "Codex lifecycle Hook JSON",
+      "numeric total_token_usage from event.transcript_path when needed",
+      ".ai-team session policy and collaboration files"
+    ],
+    "write": [
+      "vibecollab CLI setup/doctor/report output contract",
+      "private-session-markdown-v2 token provenance fields",
+      "installed repository collaboration files"
+    ]
+  },
+  "acceptance": [
+    "Given an empty private Git repository, when one setup command runs, then all private collaboration files are installed and immediately validate without environment variables",
+    "Given a configured Git user, when Codex Hook events arrive, then actor identity is recorded automatically without manual start/stop",
+    "Given a Hook event without direct Token fields but with a supported transcript_path, when Stop runs, then only numeric cumulative Token usage is recorded with parser provenance",
+    "Given transcript text contains secrets or prompts, when Token fallback runs, then no transcript text is copied into the Session Markdown",
+    "Given transcript format is absent, malformed or changed, when Hook runs, then work recording continues and Token status safely remains unavailable",
+    "Given an installed repository, when doctor or report runs, then the team receives one concise setup status or aggregate progress view"
+  ],
+  "verification": [
+    "npm test",
+    "npm run verify",
+    "python C:/Users/zzg/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/repo-task-sync",
+    "node scripts/cli.mjs setup --private --target <temporary-git-repository> --json",
+    "node scripts/cli.mjs doctor --target <temporary-git-repository> --json",
+    "node scripts/cli.mjs report --target <temporary-git-repository> --json",
+    "node .project-to-act/bin/pta.mjs validate --ci"
+  ],
+  "baseSha": "ca10b34d110d23ae40848ff0af846fd575a80bf0",
+  "gitBaseline": {
+    "clean": true,
+    "statusHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "createdAt": "2026-08-10T03:10:11.624Z"
+}

@@ -15,6 +15,10 @@ try {
   const canonicalSession = readFileSync(resolve("scripts/session.mjs"), "utf8");
   const installedSession = readFileSync(resolve(target, ".ai-team/session.mjs"), "utf8");
   if (canonicalSession !== installedSession) throw new Error("Installed session recorder differs from canonical source");
+  const packageMetadata = JSON.parse(readFileSync(resolve("package.json"), "utf8"));
+  if (packageMetadata.bin?.vibecollab !== "scripts/cli.mjs") {
+    throw new Error("Package does not expose the vibecollab CLI");
+  }
 
   const privateTarget = mkdtempSync(resolve(tmpdir(), "vibecollab-private-dist-"));
   try {

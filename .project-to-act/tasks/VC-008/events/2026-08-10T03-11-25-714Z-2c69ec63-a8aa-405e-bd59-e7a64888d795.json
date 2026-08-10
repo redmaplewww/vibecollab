@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "eventId": "4941b891-1e24-4969-aaed-b7cd7eb25aca",
+  "taskId": "VC-008",
+  "type": "state-transition",
+  "timestamp": "2026-08-10T03:11:25.714Z",
+  "from": "draft",
+  "to": "ready",
+  "revision": 2
+}

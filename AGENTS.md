@@ -7,6 +7,7 @@ VibeCollab distributes a file-only, tool-neutral repository collaboration protoc
 - `templates/repository/` contains files installed into a target repository.
 - `skills/repo-task-sync/` is the canonical reusable Skill.
 - `scripts/install.mjs` installs without overwriting user files.
+- `scripts/cli.mjs` is the one-command `setup`, `doctor`, and `report` entry point.
 - `scripts/check.mjs` validates the protocol using only Node.js built-ins and Git.
 - `.project-to-act/` governs VibeCollab itself and is not part of the installed target package.
 

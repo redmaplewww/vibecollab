@@ -1,7 +1,17 @@
 #!/usr/bin/env node
 
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import {
+  closeSync,
+  existsSync,
+  mkdirSync,
+  openSync,
+  readFileSync,
+  readSync,
+  readdirSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, relative, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -10,6 +20,8 @@ const POLICY_PATH = ".ai-team/session-policy.json";
 const SESSION_ROOT = ".ai-team/sessions";
 const RUNTIME_ROOT = ".ai-team/.runtime/sessions";
 const VALID_MESSAGE_MODES = new Set(["none", "verbatim"]);
+const TRANSCRIPT_TOKEN_PARSER_VERSION = 1;
+const TRANSCRIPT_TAIL_BYTES = 16 * 1024 * 1024;
 
 function git(root, args) {
   const result = spawnSync("git", args, { cwd: root, encoding: "utf8", windowsHide: true });
@@ -143,6 +155,9 @@ function createDraft(root, policy, event) {
     tokenUsage: {
       availability: "unavailable",
       source: null,
+      parserVersion: null,
+      completeness: "unavailable",
+      reason: "not-reported",
       inputTokens: null,
       cachedInputTokens: null,
       outputTokens: null,
@@ -174,31 +189,113 @@ function numberOrNull(value) {
   return Number.isFinite(Number(value)) && Number(value) >= 0 ? Number(value) : null;
 }
 
-function applyTokenUsage(draft, event) {
-  const usage = event.token_usage || event.tokenUsage || event.usage;
-  if (!usage || typeof usage !== "object") return;
-  const values = {
+function normalizedTokenValues(usage) {
+  if (!usage || typeof usage !== "object") return null;
+  const result = {
     inputTokens: numberOrNull(usage.input_tokens ?? usage.inputTokens ?? usage.input),
     cachedInputTokens: numberOrNull(
       usage.cached_input_tokens ?? usage.cachedInputTokens ?? usage.cached_input,
     ),
     outputTokens: numberOrNull(usage.output_tokens ?? usage.outputTokens ?? usage.output),
     reasoningTokens: numberOrNull(
-      usage.reasoning_tokens ?? usage.reasoningTokens ?? usage.reasoning_output,
+      usage.reasoning_output_tokens ??
+        usage.reasoning_tokens ??
+        usage.reasoningTokens ??
+        usage.reasoning_output,
     ),
     totalTokens: numberOrNull(usage.total_tokens ?? usage.totalTokens ?? usage.total),
   };
-  if (Object.values(values).every((value) => value === null)) return;
-  if (values.totalTokens === null) {
-    values.totalTokens = [values.inputTokens, values.outputTokens, values.reasoningTokens]
+  if (Object.values(result).every((value) => value === null)) return null;
+  if (result.totalTokens === null) {
+    result.totalTokens = [result.inputTokens, result.outputTokens, result.reasoningTokens]
       .filter((value) => value !== null)
       .reduce((sum, value) => sum + value, 0);
   }
+  return result;
+}
+
+function applyTokenUsage(draft, event) {
+  const values = normalizedTokenValues(event.token_usage || event.tokenUsage || event.usage);
+  if (!values) return false;
   draft.tokenUsage = {
     availability: "reported",
     source: String(event.token_usage_source || event.tokenUsageSource || "hook-event"),
+    parserVersion: null,
+    completeness: "hook-reported",
+    reason: null,
     ...values,
   };
+  return true;
+}
+
+function readTranscriptTail(path) {
+  const stats = statSync(path);
+  if (!stats.isFile()) throw new Error("not-a-file");
+  const length = Math.min(stats.size, TRANSCRIPT_TAIL_BYTES);
+  const start = Math.max(0, stats.size - length);
+  const buffer = Buffer.alloc(length);
+  const descriptor = openSync(path, "r");
+  try {
+    readSync(descriptor, buffer, 0, length, start);
+  } finally {
+    closeSync(descriptor);
+  }
+  let content = buffer.toString("utf8");
+  if (start > 0) {
+    const boundary = content.indexOf("\n");
+    content = boundary >= 0 ? content.slice(boundary + 1) : "";
+  }
+  return content;
+}
+
+export function extractTokenUsageFromTranscript(transcriptPath) {
+  const unavailable = (reason) => ({
+    availability: "unavailable",
+    source: null,
+    parserVersion: TRANSCRIPT_TOKEN_PARSER_VERSION,
+    completeness: "unavailable",
+    reason,
+    inputTokens: null,
+    cachedInputTokens: null,
+    outputTokens: null,
+    reasoningTokens: null,
+    totalTokens: null,
+  });
+  if (!transcriptPath || typeof transcriptPath !== "string") return unavailable("missing-transcript-path");
+  try {
+    let latest = null;
+    for (const line of readTranscriptTail(transcriptPath).split(/\r?\n/)) {
+      if (!line.trim()) continue;
+      let record;
+      try {
+        record = JSON.parse(line);
+      } catch {
+        continue;
+      }
+      if (record?.type !== "event_msg" || record?.payload?.type !== "token_count") continue;
+      const values = normalizedTokenValues(record.payload?.info?.total_token_usage);
+      if (values) latest = values;
+    }
+    if (!latest) return unavailable("supported-token-event-not-found");
+    return {
+      availability: "reported",
+      source: "codex-transcript",
+      parserVersion: TRANSCRIPT_TOKEN_PARSER_VERSION,
+      completeness: "cumulative-session-total",
+      reason: null,
+      ...latest,
+    };
+  } catch {
+    return unavailable("transcript-unreadable");
+  }
+}
+
+function applyTranscriptTokenUsage(draft, event) {
+  if (draft.tokenUsage?.availability === "reported") return false;
+  const path = event.transcript_path || event.transcriptPath;
+  if (!path) return false;
+  draft.tokenUsage = extractTokenUsageFromTranscript(path);
+  return draft.tokenUsage.availability === "reported";
 }
 
 function gitMetrics(root, baseCommit) {
@@ -265,6 +362,9 @@ function renderSession(root, draft) {
     `head_commit: ${yamlValue(draft.headCommit)}`,
     `token_availability: ${yamlValue(tokens.availability)}`,
     `token_source: ${yamlValue(tokens.source)}`,
+    `token_parser_version: ${yamlValue(tokens.parserVersion)}`,
+    `token_completeness: ${yamlValue(tokens.completeness)}`,
+    `token_reason: ${yamlValue(tokens.reason)}`,
     `input_tokens: ${yamlValue(tokens.inputTokens)}`,
     `cached_input_tokens: ${yamlValue(tokens.cachedInputTokens)}`,
     `output_tokens: ${yamlValue(tokens.outputTokens)}`,
@@ -300,7 +400,7 @@ function renderSession(root, draft) {
     "## 可验证工作量",
     "",
     `- 墙钟耗时：${elapsedSeconds} 秒；表示 Session 经过时间，不等于专注工时。`,
-    `- Token：${tokens.availability === "reported" ? `${tokens.totalTokens ?? "部分字段可用"}（${tokens.source}）` : "unavailable；当前 Hook 事件未提供时不得估算。"}`,
+    `- Token：${tokens.availability === "reported" ? `${tokens.totalTokens ?? "部分字段可用"}（${tokens.source}；${tokens.completeness}）` : `unavailable（${tokens.reason || "not-reported"}）；不得估算。`}`,
   );
   if (metrics.available) {
     lines.push(
@@ -365,13 +465,13 @@ export function recordHookEvent(event, { root = null } = {}) {
     if (event.last_assistant_message ?? event.lastAssistantMessage) {
       turn.assistantSummary = String(event.last_assistant_message ?? event.lastAssistantMessage);
     }
-    applyTokenUsage(draft, event);
+    if (!applyTokenUsage(draft, event)) applyTranscriptTokenUsage(draft, event);
   } else if (name === "SessionEnd") {
     draft.status = "closed";
     draft.endedAt = timestamp;
     const openInterval = [...(draft.activeIntervals || [])].reverse().find((interval) => interval.endedAt === null);
     if (openInterval) openInterval.endedAt = timestamp;
-    applyTokenUsage(draft, event);
+    if (!applyTokenUsage(draft, event)) applyTranscriptTokenUsage(draft, event);
   }
 
   const markdownPath = saveDraftAndMarkdown(repositoryRoot, path, draft);
@@ -437,7 +537,8 @@ export function buildSessionReport({ root = process.cwd() } = {}) {
     semantics: {
       priority: "low; never overrides project/task/code/test facts",
       elapsedSeconds: "wall-clock session duration; not focused work time",
-      tokens: "reported only when an event provides values; unavailable is never estimated",
+      tokens:
+        "uses Hook-reported values first, then numeric total_token_usage from transcript_path parser v1; unavailable is never estimated",
     },
     totals: {
       sessions: sessions.length,

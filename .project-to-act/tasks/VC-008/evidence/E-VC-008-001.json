@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "E-VC-008-001",
+  "taskId": "VC-008",
+  "recordedAt": "2026-08-10T03:20:45.766Z",
+  "commands": [
+    { "command": "npm.cmd run verify", "exitCode": 0, "result": "10 tests passed; distribution check passed" },
+    { "command": "npm pack; install tarball; vibecollab version", "exitCode": 0, "result": "independent installed bin reported 0.5.0" },
+    { "command": "python .../quick_validate.py skills/repo-task-sync", "exitCode": 0, "result": "Skill is valid" },
+    { "command": "node .project-to-act/bin/pta.mjs validate --ci", "exitCode": 0, "result": "8 tasks valid" },
+    { "command": "git diff --check", "exitCode": 0, "result": "no whitespace errors" }
+  ],
+  "coverage": {
+    "oneCommandSetup": true,
+    "doctorAndReport": true,
+    "gitIdentityWithoutEnvironmentVariable": true,
+    "privateHookLifecycle": true,
+    "numericTranscriptTokenFallback": true,
+    "transcriptSecretNotPersisted": true,
+    "unknownTranscriptFormatFailsClosed": true,
+    "publicPolicyRejected": true,
+    "packagedBinInstall": true
+  },
+  "hashes": {
+    "scripts/cli.mjs": "17fd3f0ebbdf7d97014271d25e5887a76cee8e54108cacc6cd82f78748104526",
+    "scripts/session.mjs": "876da661a51466a457f44aa28fecbff00a2c8ea7ad0e9d3f2a641aee768aa8b7",
+    "scripts/install.mjs": "1d56b889d3cd0a89338be874650c8bc27d1459b1760530207122c136d00838c8",
+    "scripts/check.mjs": "7719414f3bd98c3b31b61055422cc7a533a4a96d4c659c1107dbbb80ff41a4d9",
+    "skills/repo-task-sync/SKILL.md": "62f70ba983f9a1c645541c574bf7cf82e7a61ce65cf5fefb5d4b626923da9a7c",
+    "README.md": "7833a0de04e8088306e2043f9506a263154926f8972a6b1216c7da43ba1b089c",
+    "package.json": "7c675542910672ae3d8a38e36ce599cebab422124ddd1da715d869f4e1e60752"
+  },
+  "limitations": [
+    "Real Codex Private GitHub lifecycle remains to be exercised after publication",
+    "Transcript JSONL is not a stable official contract; parser v1 fails closed and OpenTelemetry remains the stable exact-token path"
+  ]
+}
