@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-007",
+  "title": "私有仓库可选 Session 会话账本",
+  "owner": "codex",
+  "goal": "为私有团队仓库提供可选的项目内 Codex Session 镜像，使原始用户提交、AI 工作总结、耗时、Token 可用性和 Git 进度随 PR 共享。",
+  "reason": "Codex 原生 Session 位于个人 CODEX_HOME，无法作为跨成员 Git 事实；团队需要一份低优先级、可审查、可合并的会话交接记录。",
+  "currentBehavior": "VibeCollab 只同步 PROJECT.md 与 TASK.md，明确不保存对话；目标仓库没有 Session Markdown、Codex Hook 或会话聚合视图。",
+  "expectedBehavior": "默认安装仍不采集会话；仅使用 --private-sessions 显式启用时安装策略、零依赖会话记录器和 Codex Hooks。每轮保存用户原文及最终 AI 工作总结，每会话独立 Markdown；Token 不可取得时明确标记 unavailable；校验器报告会话覆盖并拒绝在非私有策略下保存原文。",
+  "scope": {
+    "allowed": [
+      "scripts/install.mjs",
+      "scripts/check.mjs",
+      "scripts/session.mjs",
+      "scripts/check-distribution.mjs",
+      "templates/repository/**",
+      "templates/private-session/**",
+      "skills/repo-task-sync/**",
+      "tests/**",
+      "README.md",
+      "AGENTS.md",
+      ".project-to-act/PROJECT_*.md",
+      ".project-to-act/tasks/VC-007/**"
+    ],
+    "nonGoals": [
+      "读取或依赖 Codex 内部 transcript JSONL 格式",
+      "保存系统提示、开发者提示、隐藏思维链、原始工具输出或键盘逐键行为",
+      "为公开仓库启用原始对话采集",
+      "引入服务器、数据库、账号或第三方依赖",
+      "将 Token、代码行或耗时转化为个人绩效评分"
+    ]
+  },
+  "invariants": [
+    "默认安装不启用会话采集",
+    "verbatim 用户消息只能在 repositoryVisibility=private 时启用",
+    "Session Markdown 永远低于 PROJECT.md、TASK.md、代码和测试的读取优先级",
+    "每个 Session 使用独立文件，避免多人追加同一日志产生合并冲突",
+    "不得猜测 Token；缺少官方事件数据时必须记录 unavailable",
+    "安装和升级不得覆盖目标仓库已有文件"
+  ],
+  "authoritativeContext": [
+    "AGENTS.md",
+    "README.md",
+    "skills/repo-task-sync/SKILL.md",
+    "scripts/install.mjs",
+    "scripts/check.mjs",
+    "templates/repository/.ai-team/PROJECT.md"
+  ],
+  "dependencies": [],
+  "contracts": {
+    "read": [
+      "Codex lifecycle hook JSON on stdin",
+      ".ai-team/session-policy.json",
+      ".ai-team/TASK.md"
+    ],
+    "write": [
+      ".ai-team/sessions/<YYYY-MM>/<session-id>.md",
+      ".ai-team/.runtime/sessions/<session-id>.json",
+      "check.mjs session progress projection"
+    ]
+  },
+  "acceptance": [
+    "Given a normal installation, when VibeCollab is installed, then no Codex hook or prompt capture policy is added",
+    "Given --private-sessions, when installation completes, then the private policy, recorder, scoped runtime ignore and project-local Codex hooks are installed without overwriting files",
+    "Given SessionStart, UserPromptSubmit, Stop and SessionEnd events, when the adapter receives them, then it creates one low-priority Markdown containing verbatim user messages, assistant work summaries, timing, Git evidence and explicit Token availability",
+    "Given a public or malformed policy, when validation runs, then verbatim capture is rejected",
+    "Given two developers record different sessions, when their changes merge, then they write different paths and the aggregate report includes both",
+    "Given a generated Session Markdown, when another AI resumes the task, then Skill rules prevent that file from overriding PROJECT.md, TASK.md, code or tests"
+  ],
+  "verification": [
+    "npm test",
+    "npm run verify",
+    "python C:/Users/zzg/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/repo-task-sync",
+    "node scripts/install.mjs --target <temporary-private-repository> --private-sessions",
+    "node .ai-team/check.mjs --json"
+  ],
+  "baseSha": "d9e96e7991234f490214cba4e933417a5ed57e30",
+  "gitBaseline": {
+    "clean": true,
+    "statusHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "createdAt": "2026-08-09T16:39:05.998Z"
+}

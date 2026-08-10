@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "E-VC-007-001",
+  "taskId": "VC-007",
+  "checkedAt": "2026-08-10T00:58:07+08:00",
+  "baseCommit": "d9e96e7991234f490214cba4e933417a5ed57e30",
+  "contextHash": "35bac520f6a5ed7205485a20c84dbf9c93c772bff102fe41177d38622959bb39",
+  "commands": [
+    {
+      "command": "npm.cmd run verify",
+      "exitCode": 0,
+      "result": "8 Node tests passed and distribution check passed"
+    },
+    {
+      "command": "python C:/Users/zzg/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/repo-task-sync",
+      "exitCode": 0,
+      "result": "Skill is valid"
+    },
+    {
+      "command": "node --test --test-name-pattern=private installation records tests/repo-task-sync.test.mjs",
+      "exitCode": 0,
+      "result": "Windows commandWindows hook resolved the Git root from a nested directory and recorded the session"
+    }
+  ],
+  "results": {
+    "defaultMode": "session recorder installed but no policy or Codex hooks; capture disabled",
+    "privateMode": "explicit --private-sessions installs private policy, runtime ignore, per-session Markdown directory and Codex hooks",
+    "crossActor": "alice and bob wrote separate session files and both appeared in the aggregate report",
+    "captured": [
+      "verbatim user prompt",
+      "final assistant work summary",
+      "wall-clock elapsed time",
+      "verified Git delta",
+      "token values when supplied",
+      "unavailable when token values are absent"
+    ],
+    "failureClosed": "repositoryVisibility=public rejected verbatim capture and wrote no session file"
+  },
+  "fileHashes": {
+    "scripts/session.mjs": "c87a76bfa6a1583136bf9b0359c120bde3f699a1179dae64a6eee720076d3b17",
+    "scripts/install.mjs": "1d56b889d3cd0a89338be874650c8bc27d1459b1760530207122c136d00838c8",
+    "scripts/check.mjs": "7719414f3bd98c3b31b61055422cc7a533a4a96d4c659c1107dbbb80ff41a4d9",
+    "skills/repo-task-sync/SKILL.md": "b6e0c107b0079af95be3ad044d564dd7c0ecfb0de770e0d871b9270577f5d521"
+  },
+  "limitations": [
+    "The documented Codex lifecycle hook payload does not guarantee token usage; exact token fields remain unavailable unless an event or wrapper supplies them.",
+    "A real Private GitHub repository must still review and trust the project-local Codex hooks after merge.",
+    "Captured session text requires human review before commit even in a private repository."
+  ]
+}

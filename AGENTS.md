@@ -14,8 +14,8 @@ VibeCollab distributes a file-only, tool-neutral repository collaboration protoc
 
 - One active task has one writer at a time.
 - Code and `.ai-team/TASK.md` land in the same PR and merge commit.
-- AI chat, memory, prompts, and chain-of-thought are not shared facts.
-- Do not store credentials, private source copies, personal data, or performance scores.
+- AI chat and memory are not shared facts. An explicitly enabled private-repository session journal may preserve user submissions and final AI work summaries as low-priority trace evidence only.
+- Do not store credentials, private source copies, system/developer prompts, chain-of-thought, raw tool output, keyboard activity, personal data, or performance scores.
 - Git/CI evidence decides acceptance; AI self-report does not.
 - Installation must preserve all pre-existing repository content.
 

@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-007",
+  "revision": 0,
+  "baseSha": "d9e96e7991234f490214cba4e933417a5ed57e30",
+  "paths": [
+    "scripts/**",
+    "templates/**",
+    "skills/repo-task-sync/**",
+    "tests/**",
+    "README.md",
+    "AGENTS.md",
+    ".project-to-act/PROJECT_*.md",
+    ".project-to-act/tasks/VC-007/**"
+  ],
+  "symbols": [
+    "installRepositoryFiles",
+    "validateRepository",
+    "recordHookEvent",
+    "buildSessionReport"
+  ],
+  "contractsWrite": [
+    "private-session-policy-v1",
+    "private-session-markdown-v1",
+    "codex-hook-adapter-v1"
+  ],
+  "migrations": false
+}

@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-007",
+  "baseSha": "d9e96e7991234f490214cba4e933417a5ed57e30",
+  "inputs": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "596f7ddd5bec643a235632bb1da6babbdf7b88b0bae01787131bb84a63b2a29e",
+      "bytes": 1375,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/PROJECT_OVERVIEW.md",
+      "sha256": "8343b7b125b0474889660573f47692b1252e447c8075794c25714fff0d97218e",
+      "bytes": 5890,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/COLLABORATION_CONFIG.json",
+      "sha256": "5dee6b22c829fe7e01fb5b8491a69853498d6c24aa785c758763042c92b85fcd",
+      "bytes": 543,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/skill/SKILL.md",
+      "sha256": "ef4702dd4e6d7ba67526aa91b691884df7e1416bccf95e28f0eb75db63efe464",
+      "bytes": 4043,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/tasks/VC-007/TASK.json",
+      "sha256": "4e7499091f8d5e4511bad400030e17fd0b91dbb907e0233673c9b90a33270112",
+      "bytes": 4330,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/tasks/VC-007/INTENT.json",
+      "sha256": "ccbf1ef14491adbba34cc00e322ce6f6e1edc4311071b784eced72c414862253",
+      "bytes": 603,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": "README.md",
+      "sha256": "af86d99cf6cc6efa263ca60d27c01f9b2e8e5c53f6034fcc3030a7f5921f732b",
+      "bytes": 5925,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": "skills/repo-task-sync/SKILL.md",
+      "sha256": "b6e0c107b0079af95be3ad044d564dd7c0ecfb0de770e0d871b9270577f5d521",
+      "bytes": 4952,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": "scripts/install.mjs",
+      "sha256": "1d56b889d3cd0a89338be874650c8bc27d1459b1760530207122c136d00838c8",
+      "bytes": 4533,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": "scripts/check.mjs",
+      "sha256": "7719414f3bd98c3b31b61055422cc7a533a4a96d4c659c1107dbbb80ff41a4d9",
+      "bytes": 8891,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": "templates/repository/.ai-team/PROJECT.md",
+      "sha256": "7e09ad401b98988614f969d67da53944a8c6fc2cbd0b8a6701c2010cd8aa5c16",
+      "bytes": 1119,
+      "normalization": "utf8-lf"
+    }
+  ],
+  "createdAt": "2026-08-09T16:58:07.553Z",
+  "contextHash": "35bac520f6a5ed7205485a20c84dbf9c93c772bff102fe41177d38622959bb39"
+}

@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "sessionId": "s-1aef9c35-5529-48bb-aea0-ddb7cbdc7bc5",
+  "taskId": "VC-007",
+  "actorId": "codex",
+  "executor": "codex",
+  "executorVersion": null,
+  "model": null,
+  "source": "cli-tracked",
+  "status": "completed",
+  "startedAt": "2026-08-09T16:41:19.714Z",
+  "endedAt": "2026-08-09T16:58:34.493Z",
+  "elapsedSeconds": 1035,
+  "gitStart": {
+    "available": true,
+    "headSha": "d9e96e7991234f490214cba4e933417a5ed57e30",
+    "clean": false,
+    "statusHash": "fc0906d1296d18fcef8a7e74392ab2642e1554f38c1229e5187fd55fed22514c"
+  },
+  "gitMetrics": {
+    "available": false,
+    "reason": "dirty-session-start",
+    "startStatusHash": "fc0906d1296d18fcef8a7e74392ab2642e1554f38c1229e5187fd55fed22514c"
+  },
+  "toolReported": {
+    "source": "tool-reported",
+    "tokensIn": null,
+    "tokensOut": null,
+    "costUsd": null,
+    "testsPassed": 8,
+    "testsFailed": null
+  },
+  "summary": "Implemented opt-in private Codex session journal, validation, metrics, docs, and 8 passing tests"
+}

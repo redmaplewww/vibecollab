@@ -5,10 +5,10 @@
 
 ## 当前验收结论
 
-- 结论：v0.3.0 纯文件 PR/Merge 同步本地验收通过
-- 验收范围：无依赖安装、已有文件保护、项目/任务模板、通用 Skill、功能/Git 进度、PR 同步门禁和双 clone 接力
-- 最后检查：2026-08-05，6 项 Node 测试、Skill/治理校验、凭据扫描、公共可见性、远程 main 和 Actions v7 CI
-- 遗留问题：尚未选择 LICENSE；单写入者依赖 GitHub 分支保护与团队纪律
+- 结论：v0.4.0 私有 Session 账本本地验收通过，尚未推送发布
+- 验收范围：默认关闭、Private 策略门禁、Codex 生命周期 Hook、独立 Session Markdown、用户原文与 AI 最终响应、墙钟/Git/Token 覆盖统计、公开仓库失败关闭
+- 最后检查：2026-08-10，8 项 Node 测试、分发检查、Skill 校验和 Windows 子目录 Hook 模拟
+- 遗留问题：尚未在真实 Codex Private GitHub 仓库触发完整生命周期；当前官方 Hook 不保证提供 Token，缺失时显示 unavailable
 
 ## 验收标准
 
@@ -22,6 +22,7 @@
 | A-006   | 两人可顺序接力同一个 Task    | 通过 | 双 clone publish/push、拒绝错误接收者、accept/pull | E-003   |
 | A-007   | 纯文件即可同步代码与 AI 上下文 | 通过 | 空仓库安装、反例门禁、PR merge 后 Bob 独立恢复     | E-004   |
 | A-008   | 公共 GitHub 仓库可直接使用     | 通过 | 匿名 HTTP、Public visibility、远程 main 与 Actions | E-005   |
+| A-009   | Private Session 可安全共享       | 通过 | 默认关闭、双 Actor Hook、独立 MD、公开策略反例与统计 | E-007   |
 
 ## 证据索引
 
@@ -33,6 +34,7 @@
 | E-004   | 2026-08-04 | `npm run verify`；Skill/治理校验；代码-only 反例；Alice/Bob 双 clone merge          | 0        | 实现提交 `bb2193f`；核心文件哈希见证据          | 6 测试、无依赖安装、冲突保护、功能/Git 进度和跨 clone 恢复通过       | `.project-to-act/tasks/VC-004/evidence/E-VC-004-001.json` | 模板、安装器、校验器或 Skill 变化前 |
 | E-005   | 2026-08-05 | 凭据扫描；`gh repo view`；匿名 HTTP；`git ls-remote`；GitHub Actions                 | 0        | 发布内容提交 `1a39e78`                         | Public、匿名 200、main 一致、元数据与首次 Verify workflow 通过       | `.project-to-act/tasks/VC-005/evidence/E-VC-005-001.json` | 可见性、README、remote 或 CI 变化前 |
 | E-006   | 2026-08-05 | 官方 action release；`npm run verify`；GitHub Actions v7 workflow                   | 0        | 发布提交 `f908261`                              | 根工作流和安装模板使用 checkout/setup-node v7，公共 Verify 通过      | `.project-to-act/tasks/VC-006/evidence/E-VC-006-001.json` | Actions 版本或工作流变化前          |
+| E-007   | 2026-08-10 | `npm.cmd run verify`；Skill 校验；Windows Hook 与公开策略反例                       | 0        | 核心文件 SHA-256 见证据 JSON                    | 8 测试、分发、双 Session、子目录 Hook、Token 覆盖和失败关闭通过      | `.project-to-act/tasks/VC-007/evidence/E-VC-007-001.json` | Session 协议、Hook、安装器或 Skill 变化前 |
 
 ## Gate 记录
 
@@ -43,11 +45,13 @@
 | G-003   | 2026-08-03 | v0.2.0 顺序接力 | CLI、Git 门禁、API、Skill、Web 与真实双 clone | 通过 | E-003   | 独立 GitHub remote 上的真实团队试运行后续处理 |
 | G-004   | 2026-08-04 | v0.3.0 纯文件同步 | 模板、安装/校验、Skill、PR 门禁与双 clone       | 通过 | E-004   | 真实 GitHub protected branch 试运行待完成     |
 | G-005   | 2026-08-05 | v0.3.0 公共发布   | Public 可见性、README、远程 main、元数据与 CI   | 通过 | E-005   | LICENSE 与 branch protection 由所有者后续设置 |
+| G-006   | 2026-08-10 | v0.4.0 私有 Session | 默认关闭、Private 门禁、Hooks、Markdown、统计与反例 | 通过 | E-007 | 真实 Private GitHub/Codex 生命周期待发布后验证 |
 
 ## 验收记录
 
 按时间倒序追加：日期、检查范围、证据 ID、结果、遗留问题和结论。失败、跳过与过期证据也必须如实记录。
 
+- 2026-08-10：VC-007 本地验收通过；默认安装不启用采集，Private 安装的 Windows Hook 可从子目录写入两名 Actor 的独立 Markdown，用户原文、AI 最终响应、墙钟、Git 和 Token 覆盖统计符合协议，Public 策略被拒绝；证据 E-007。真实 Codex Token 字段仍依赖官方事件可用性。
 - 2026-08-05：VC-006 验收通过；官方 Actions v7 已同步到根工作流与安装模板，公共 main CI 成功且不再使用弃用的 v4 runtime；证据 E-006。
 - 2026-08-05：VC-005 公共发布验收通过；仓库匿名可访问、默认分支 main、发布 SHA 一致且首次 GitHub Actions 成功；证据 E-005。
 - 2026-08-04：VC-004 本地验收通过；校验器拒绝代码-only PR，Alice 的代码与 TASK 同 PR 合并后 Bob 仅从 main 恢复目标、决策和下一步；证据 E-004。

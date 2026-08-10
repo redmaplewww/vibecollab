@@ -6,6 +6,7 @@
 
 | 任务                    | 状态     | 负责人 | 完成条件                                              | 证据 ID | 最后更新   |
 | ----------------------- | -------- | ------ | ----------------------------------------------------- | ------- | ---------- |
+| VC-007 私有 Session 账本 | 本地完成 | Codex  | 默认关闭、Private 门禁、Hook 采集、独立 Markdown 和统计通过 | E-007   | 2026-08-10 |
 | VC-006 Actions v7 更新  | 已完成   | Codex  | 根工作流与模板升级、公共 main CI 无弃用版本          | E-006   | 2026-08-05 |
 | VC-005 公共 GitHub 发布 | 已完成   | Codex  | Public 仓库、简单说明、远程 main 与匿名可访问验证    | E-005   | 2026-08-05 |
 | VC-004 纯文件 PR 同步   | 本地完成 | Codex  | 文件模板、无依赖安装/校验、双 clone merge 接力通过   | E-004   | 2026-08-04 |
@@ -21,14 +22,17 @@
 
 ## 下一步
 
-1. 在 GitHub 中保护 `main` 并把 `verify` 设为 required check。
-2. 用 5–10 个真实的两人同 Task PR 接力试运行并冻结 Repo Task Sync Protocol v1。
-3. 由仓库所有者选择公开许可后添加 LICENSE。
+1. 审查并发布 v0.4.0，在一个真实 Private 目标仓库信任 Hook 后完成首轮会话记录。
+2. 在 GitHub 中保护 `main` 并把 `verify` 设为 required check。
+3. 用 5–10 个真实的两人同 Task PR 接力试运行并冻结 Repo Task Sync Protocol v1。
+4. 由仓库所有者选择公开许可后添加 LICENSE。
 
 ## 进度历史
 
 按时间倒序追加：日期、完成事项、证据 ID、遗留问题、下一步和确认来源。不要覆盖旧记录。
 
+- 2026-08-10：完成 VC-007 本地实现；默认安装无 Hook/策略，`--private-sessions` 安装 Private 门禁、项目级 Codex Hooks、独立 Session Markdown、墙钟/Git/Token 覆盖统计；Windows 子目录 Hook、双 Actor 独立文件、公开仓库失败关闭、8 项测试、分发与 Skill 校验通过；证据 E-007。
+- 2026-08-10：启动 VC-007；用户确认原始对话采集只用于私有团队仓库，要求以项目文件维护低优先级 Session，记录用户原始提交、AI 工作总结、Token 可用性和耗时。
 - 2026-08-05：完成 VC-006；根工作流和安装模板升级到官方 checkout/setup-node v7，公共 main Verify run 30937357537 通过；证据 E-006。
 - 2026-08-05：启动 VC-006；公共 CI 成功但报告 action Node 20 runtime 弃用，官方 checkout/setup-node 最新主版本均为 v7。
 - 2026-08-05：完成 VC-005；`redmaplewww/vibecollab` 已设为 Public，匿名 HTTP 200、远程 main SHA 一致、仓库元数据和首次 GitHub Actions Verify 通过；证据 E-005。

@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const templateRoot = resolve(packageRoot, "templates/repository");
+const privateSessionTemplateRoot = resolve(packageRoot, "templates/private-session");
 const START = "<!-- repo-task-sync:start -->";
 const END = "<!-- repo-task-sync:end -->";
 
@@ -19,16 +20,22 @@ function listFiles(directory) {
 function parseArgs(argv) {
   let target = null;
   let dryRun = false;
+  let privateSessions = false;
   for (let index = 0; index < argv.length; index += 1) {
     if (argv[index] === "--target") target = argv[++index];
     else if (argv[index] === "--dry-run") dryRun = true;
+    else if (argv[index] === "--private-sessions") privateSessions = true;
     else throw new Error(`Unknown argument: ${argv[index]}`);
   }
-  if (!target) throw new Error("Usage: node scripts/install.mjs --target <repository> [--dry-run]");
-  return { target: resolve(target), dryRun };
+  if (!target) {
+    throw new Error(
+      "Usage: node scripts/install.mjs --target <repository> [--private-sessions] [--dry-run]",
+    );
+  }
+  return { target: resolve(target), dryRun, privateSessions };
 }
 
-export function installRepositoryFiles({ target, dryRun = false }) {
+export function installRepositoryFiles({ target, dryRun = false, privateSessions = false }) {
   const targetRoot = resolve(target);
   if (!existsSync(targetRoot) || !statSync(targetRoot).isDirectory()) {
     throw new Error(`Target directory does not exist: ${targetRoot}`);
@@ -38,9 +45,18 @@ export function installRepositoryFiles({ target, dryRun = false }) {
     source,
     destination: resolve(targetRoot, relative(templateRoot, source)),
   }));
+  if (privateSessions) {
+    mappings.push(
+      ...listFiles(privateSessionTemplateRoot).map((source) => ({
+        source,
+        destination: resolve(targetRoot, relative(privateSessionTemplateRoot, source)),
+      })),
+    );
+  }
   mappings.push(
     { source: resolve(packageRoot, "skills/repo-task-sync/SKILL.md"), destination: resolve(targetRoot, ".ai-team/SKILL.md") },
     { source: resolve(packageRoot, "scripts/check.mjs"), destination: resolve(targetRoot, ".ai-team/check.mjs") },
+    { source: resolve(packageRoot, "scripts/session.mjs"), destination: resolve(targetRoot, ".ai-team/session.mjs") },
   );
 
   const conflicts = [];
@@ -83,7 +99,7 @@ export function installRepositoryFiles({ target, dryRun = false }) {
     created.push(destinationName);
   }
 
-  return { valid: true, target: targetRoot, dryRun, created, appended, unchanged };
+  return { valid: true, target: targetRoot, dryRun, privateSessions, created, appended, unchanged };
 }
 
 const invokedPath = process.argv[1] ? resolve(process.argv[1]) : null;

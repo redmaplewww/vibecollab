@@ -4,12 +4,14 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { buildSessionReport, validateSessionConfiguration } from "./session.mjs";
 
 const REQUIRED_FILES = [
   "AGENTS.md",
   ".ai-team/PROJECT.md",
   ".ai-team/TASK.md",
   ".ai-team/SKILL.md",
+  ".ai-team/session.mjs",
 ];
 
 const REQUIRED_SECTIONS = [
@@ -115,6 +117,10 @@ export function validateRepository({ root = process.cwd(), base = null } = {}) {
     errors.push("TASK.md Status done requires every verification item to be checked");
   }
 
+  const sessionValidation = validateSessionConfiguration({ root: absoluteRoot });
+  errors.push(...sessionValidation.errors);
+  const sessions = buildSessionReport({ root: absoluteRoot });
+
   const gitProgress = {
     available: false,
     base,
@@ -177,6 +183,7 @@ export function validateRepository({ root = process.cwd(), base = null } = {}) {
       },
     },
     git: gitProgress,
+    sessions,
     errors,
   };
 }
@@ -191,6 +198,9 @@ function printHuman(result) {
       result.git.available
         ? `Code progress from ${result.git.base}: ${result.git.commits} commits, ${result.git.changedFiles} files, +${result.git.additions}/-${result.git.deletions}`
         : "Code progress: provide --base <target-branch-or-sha> to compare Git changes",
+      result.sessions.enabled
+        ? `Private sessions: ${result.sessions.totals.sessions}; closed: ${result.sessions.totals.closed}; token coverage: ${result.sessions.totals.tokenCoverage.reported}/${result.sessions.totals.tokenCoverage.total}`
+        : "Private sessions: disabled",
       result.valid ? "Result: valid" : `Result: blocked\n- ${result.errors.join("\n- ")}`,
     ].join("\n") + "\n",
   );

@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-007",
+  "state": "done",
+  "revision": 7,
+  "owner": "codex",
+  "branch": "codex/vc-007-private-session-journal",
+  "contextHash": "35bac520f6a5ed7205485a20c84dbf9c93c772bff102fe41177d38622959bb39",
+  "updatedAt": "2026-08-09T16:59:40.877Z",
+  "lastCheckpoint": null,
+  "activeSessionId": null,
+  "currentActor": null,
+  "handoffState": "paused",
+  "handoffId": null
+}

@@ -23,7 +23,8 @@ AGENTS.md
 ├─ PROJECT.md       # 长期目标、架构边界和不变量
 ├─ TASK.md          # 当前任务、进度、决策和交接
 ├─ SKILL.md         # 任意 AI 都能执行的通用流程
-└─ check.mjs        # 零依赖结构、进度和 PR 一致性检查
+├─ check.mjs        # 零依赖结构、进度和 PR 一致性检查
+└─ session.mjs      # 默认不采集；私有 Session 的可选记录器
 .github/
 ├─ PULL_REQUEST_TEMPLATE/repo-task-sync.md
 └─ workflows/repo-task-sync.yml
@@ -90,6 +91,45 @@ GitHub 上直接使用三个视图：
 - 交接状态：`TASK.md` 的 `Status`、`Owner`、`Next owner` 与 `Next step`。
 
 不要用代码行数、commit 数或 AI token 评价个人绩效；它们只描述变更规模，不代表价值。
+
+## 私有团队仓库：共享 Codex Session 摘要
+
+只有确认目标仓库是 Private 时才启用：
+
+```powershell
+node .\vibecollab\scripts\install.mjs --target D:\code\your-private-project --private-sessions
+```
+
+该选项额外安装：
+
+```text
+.ai-team/
+├─ session-policy.json      # 明确声明 private、verbatim 和排除项
+├─ .gitignore               # 忽略仅本机使用的 .runtime/
+└─ sessions/YYYY-MM/*.md    # 每个 Codex Session 一个可合并文件
+.codex/hooks.json           # Codex 生命周期薄适配器
+```
+
+首次打开仓库时，Codex 会要求审查并信任项目 Hook。Hook 只接收官方生命周期事件，不解析 `~/.codex/sessions` 内部文件：
+
+- `SessionStart` 建立本机会话草稿并记录基线 commit。
+- `UserPromptSubmit` 保存该轮用户原始提交。
+- `Stop` 保存最终 AI 响应作为工作内容总结，并立即更新可提交 Markdown。
+- `SessionEnd` 标记会话结束并计算墙钟耗时。
+
+记录者默认取 `git config user.name`；需要稳定团队 ID 时，在每位成员本机设置 `VIBECOLLAB_ACTOR`，不要把个人令牌或邮箱写入策略文件。
+
+Session Markdown 是最低优先级历史证据。功能是否实装仍以 `.ai-team/TASK.md` 验收项、代码、测试和 CI 为准。文件不保存系统/开发者提示、隐藏思维链、原始工具输出、私有源码副本或键盘行为。
+
+查看会话统计：
+
+```powershell
+node .ai-team/session.mjs report
+node .ai-team/session.mjs validate
+node .ai-team/check.mjs --base origin/main --json
+```
+
+统计包含 Session 数、参与人、墙钟耗时、Git 变化和 Token 覆盖率。当前 Codex Hook 未提供 Token 时显示 `unavailable`，不会估算成一个看似精确的数字。
 
 ## 必须遵守的四条规则
 

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import test from "node:test";
@@ -31,7 +31,11 @@ test("installer creates a valid file-only collaboration package", () => {
     assert.equal(result.valid, true);
     assert.ok(result.created.includes(".ai-team/TASK.md"));
     assert.ok(result.created.includes(".ai-team/check.mjs"));
+    assert.ok(result.created.includes(".ai-team/session.mjs"));
+    assert.equal(existsSync(resolve(root, ".ai-team/session-policy.json")), false);
+    assert.equal(existsSync(resolve(root, ".codex/hooks.json")), false);
     assert.equal(validateRepository({ root }).valid, true);
+    assert.equal(validateRepository({ root }).sessions.enabled, false);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -195,6 +199,152 @@ test("installed checker runs without package dependencies", () => {
     });
     assert.equal(result.status, 0, result.stderr || result.stdout);
     assert.equal(JSON.parse(result.stdout).valid, true);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("private installation records Codex hook events into one low-priority Markdown per session", () => {
+  const root = mkdtempSync(resolve(tmpdir(), "vibecollab-private-session-"));
+  try {
+    git(root, "init", "-b", "main");
+    configureGit(root, "Alice");
+    const installed = installRepositoryFiles({ target: root, privateSessions: true });
+    assert.equal(installed.privateSessions, true);
+    assert.ok(installed.created.includes(".ai-team/session-policy.json"));
+    assert.ok(installed.created.includes(".codex/hooks.json"));
+    replaceTask(root, [
+      ["- ID: `TASK-000`", "- ID: `AGENT-PRIVATE-001`"],
+      ["- Title: `Define the first shared task`", "- Title: `Build one private agent`"],
+      ["- Status: `planning`", "- Status: `active`"],
+      ["- Owner: `unassigned`", "- Owner: `alice`"],
+    ]);
+    git(root, "add", ".");
+    git(root, "commit", "-m", "chore: install private collaboration journal");
+
+    const sessionScript = resolve(root, ".ai-team/session.mjs");
+    const send = (payload, actor = "alice") => {
+      const result = spawnSync(process.execPath, [sessionScript, "hook"], {
+        cwd: root,
+        encoding: "utf8",
+        input: JSON.stringify(payload),
+        env: { ...process.env, VIBECOLLAB_ACTOR: actor },
+        windowsHide: true,
+      });
+      assert.equal(result.status, 0, result.stderr || result.stdout);
+    };
+    const common = { session_id: "thr_private_1", cwd: root, model: "codex-test" };
+    const hooks = JSON.parse(readFileSync(resolve(root, ".codex/hooks.json"), "utf8"));
+    const windowsCommand = hooks.hooks.SessionStart[0].hooks[0].commandWindows;
+    const nestedCwd = resolve(root, "nested/workspace");
+    mkdirSync(nestedCwd, { recursive: true });
+    const windowsStart = spawnSync(windowsCommand, {
+        cwd: nestedCwd,
+        encoding: "utf8",
+        input: JSON.stringify({
+          ...common,
+          cwd: nestedCwd,
+          hook_event_name: "SessionStart",
+          source: "startup",
+          timestamp: "2026-08-10T02:00:00.000Z",
+        }),
+        env: { ...process.env, VIBECOLLAB_ACTOR: "alice" },
+        shell: true,
+        windowsHide: true,
+      });
+    assert.equal(windowsStart.status, 0, windowsStart.stderr || windowsStart.stdout);
+    send({
+      ...common,
+      hook_event_name: "UserPromptSubmit",
+      turn_id: "turn-1",
+      prompt: "实现暂停与恢复；恢复后不得重复执行。",
+      timestamp: "2026-08-10T02:01:00.000Z",
+    });
+    send({
+      ...common,
+      hook_event_name: "Stop",
+      turn_id: "turn-1",
+      last_assistant_message: "已实现暂停、幂等恢复和状态机测试。",
+      timestamp: "2026-08-10T02:10:00.000Z",
+    });
+    send({ ...common, hook_event_name: "SessionEnd", reason: "other", timestamp: "2026-08-10T02:12:00.000Z" });
+
+    const bob = { session_id: "thr_private_2", cwd: root, model: "codex-test" };
+    send({ ...bob, hook_event_name: "SessionStart", source: "startup", timestamp: "2026-08-10T03:00:00.000Z" }, "bob");
+    send(
+      {
+        ...bob,
+        hook_event_name: "UserPromptSubmit",
+        turn_id: "turn-2",
+        prompt: "继续实现恢复后的移动端状态展示。",
+        timestamp: "2026-08-10T03:01:00.000Z",
+      },
+      "bob",
+    );
+    send(
+      {
+        ...bob,
+        hook_event_name: "Stop",
+        turn_id: "turn-2",
+        last_assistant_message: "已完成移动端状态展示。",
+        token_usage: { input_tokens: 120, output_tokens: 30, total_tokens: 150 },
+        token_usage_source: "test-event",
+        timestamp: "2026-08-10T03:05:00.000Z",
+      },
+      "bob",
+    );
+    send({ ...bob, hook_event_name: "SessionEnd", reason: "other", timestamp: "2026-08-10T03:06:00.000Z" }, "bob");
+
+    const markdownPath = resolve(root, ".ai-team/sessions/2026-08/thr_private_1.md");
+    assert.equal(existsSync(markdownPath), true);
+    const markdown = readFileSync(markdownPath, "utf8");
+    assert.match(markdown, /read_priority: "low"/);
+    assert.match(markdown, /实现暂停与恢复；恢复后不得重复执行。/);
+    assert.match(markdown, /已实现暂停、幂等恢复和状态机测试。/);
+    assert.match(markdown, /elapsed_seconds: 720/);
+    assert.match(markdown, /token_availability: "unavailable"/);
+    assert.doesNotMatch(markdown, /chain.of.thought/i);
+    assert.equal(existsSync(resolve(root, ".ai-team/sessions/2026-08/thr_private_2.md")), true);
+
+    const checked = validateRepository({ root });
+    assert.equal(checked.valid, true, checked.errors.join("\n"));
+    assert.equal(checked.sessions.enabled, true);
+    assert.equal(checked.sessions.totals.sessions, 2);
+    assert.deepEqual(checked.sessions.byActor, { alice: 1, bob: 1 });
+    assert.deepEqual(checked.sessions.totals.tokenCoverage, { reported: 1, total: 2 });
+    assert.equal(checked.sessions.totals.totalTokens, 150);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("private session policy rejects verbatim capture when repository visibility is not private", () => {
+  const root = mkdtempSync(resolve(tmpdir(), "vibecollab-public-session-"));
+  try {
+    installRepositoryFiles({ target: root, privateSessions: true });
+    const policyPath = resolve(root, ".ai-team/session-policy.json");
+    const policy = JSON.parse(readFileSync(policyPath, "utf8"));
+    policy.repositoryVisibility = "public";
+    writeFileSync(policyPath, `${JSON.stringify(policy, null, 2)}\n`, "utf8");
+
+    const checked = validateRepository({ root });
+    assert.equal(checked.valid, false);
+    assert.match(checked.errors.join("\n"), /repositoryVisibility=private/);
+
+    const hook = spawnSync(process.execPath, [resolve(root, ".ai-team/session.mjs"), "hook"], {
+      cwd: root,
+      encoding: "utf8",
+      input: JSON.stringify({
+        session_id: "thr_public",
+        cwd: root,
+        hook_event_name: "UserPromptSubmit",
+        turn_id: "turn-1",
+        prompt: "must not be written",
+      }),
+      windowsHide: true,
+    });
+    assert.equal(hook.status, 1);
+    assert.equal(existsSync(resolve(root, ".ai-team/sessions/2026-08/thr_public.md")), false);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
