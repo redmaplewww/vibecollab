@@ -6,7 +6,7 @@
 
 | 任务                    | 状态     | 负责人 | 完成条件                                              | 证据 ID | 最后更新   |
 | ----------------------- | -------- | ------ | ----------------------------------------------------- | ------- | ---------- |
-| VC-008 一键安装与无感记录 | 本地完成 | Codex  | CLI 分发、Private setup、自动身份、doctor/report 和 Token 降级通过 | E-008   | 2026-08-10 |
+| VC-008 一键安装与无感记录 | 已发布 | Codex  | CLI 分发、Private setup、自动身份、doctor/report、Token 降级和 main CI 通过 | E-009   | 2026-08-10 |
 | VC-007 私有 Session 账本 | 本地完成 | Codex  | 默认关闭、Private 门禁、Hook 采集、独立 Markdown 和统计通过 | E-007   | 2026-08-10 |
 | VC-006 Actions v7 更新  | 已完成   | Codex  | 根工作流与模板升级、公共 main CI 无弃用版本          | E-006   | 2026-08-05 |
 | VC-005 公共 GitHub 发布 | 已完成   | Codex  | Public 仓库、简单说明、远程 main 与匿名可访问验证    | E-005   | 2026-08-05 |
@@ -23,7 +23,7 @@
 
 ## 下一步
 
-1. 审查并发布 v0.5.0，在一个真实 Private 目标仓库运行一条 setup 命令并信任 Hook 后完成首轮会话记录。
+1. 在一个真实 Private 目标仓库运行一条 setup 命令并信任 Hook 后完成首轮会话记录。
 2. 在 GitHub 中保护 `main` 并把 `verify` 设为 required check。
 3. 用 5–10 个真实的两人同 Task PR 接力试运行并冻结 Repo Task Sync Protocol v1。
 4. 由仓库所有者选择公开许可后添加 LICENSE。
@@ -32,6 +32,7 @@
 
 按时间倒序追加：日期、完成事项、证据 ID、遗留问题、下一步和确认来源。不要覆盖旧记录。
 
+- 2026-08-10：按仓库所有者明确要求关闭 Draft PR #1，将 v0.5.0 直接快进推送到公共 main；修复测试错误调用 Windows Hook 命令的 Linux CI 问题后，main Verify run 31364978558 成功；证据 E-009。
 - 2026-08-10：完成 VC-008 本地实现；新增可通过 GitHub npx 使用的零依赖 `vibecollab` bin，提供 setup/doctor/report；无需环境变量或手动 Session 生命周期；Token 缺失时仅解析 transcript 数值事件并验证秘密文本不落盘。10 项测试、分发包安装、Skill、治理与 diff 门禁通过；证据 E-008。
 
 - 2026-08-10：完成 VC-007 本地实现；默认安装无 Hook/策略，`--private-sessions` 安装 Private 门禁、项目级 Codex Hooks、独立 Session Markdown、墙钟/Git/Token 覆盖统计；Windows 子目录 Hook、双 Actor 独立文件、公开仓库失败关闭、8 项测试、分发与 Skill 校验通过；证据 E-007。

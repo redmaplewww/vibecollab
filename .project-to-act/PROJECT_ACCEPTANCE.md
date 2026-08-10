@@ -5,9 +5,9 @@
 
 ## 当前验收结论
 
-- 结论：v0.5.0 一键安装与无感记录本地验收通过，尚未推送发布
+- 结论：v0.5.0 已直接发布到公共 GitHub main，远程 CI 通过
 - 验收范围：一条命令 Private setup、自动 Git 身份、doctor/report、无需手动 Session 生命周期、Hook/Transcript Token 来源、秘密文本隔离、未知格式失败关闭与可安装分发包
-- 最后检查：2026-08-10，10 项 Node 测试、分发检查、独立 tarball/bin 安装、Skill 校验、治理校验和 Windows 子目录 Hook 模拟
+- 最后检查：2026-08-10，10 项 Node 测试、分发检查、独立 tarball/bin 安装、Skill/治理校验、Windows 子目录 Hook 模拟和 Linux main Actions
 - 遗留问题：尚未在真实 Codex Private GitHub 仓库触发完整生命周期；transcript Token 解析是版本化降级路径，长期稳定精确计量仍应使用 OpenTelemetry
 
 ## 验收标准
@@ -37,6 +37,7 @@
 | E-006   | 2026-08-05 | 官方 action release；`npm run verify`；GitHub Actions v7 workflow                   | 0        | 发布提交 `f908261`                              | 根工作流和安装模板使用 checkout/setup-node v7，公共 Verify 通过      | `.project-to-act/tasks/VC-006/evidence/E-VC-006-001.json` | Actions 版本或工作流变化前          |
 | E-007   | 2026-08-10 | `npm.cmd run verify`；Skill 校验；Windows Hook 与公开策略反例                       | 0        | 核心文件 SHA-256 见证据 JSON                    | 8 测试、分发、双 Session、子目录 Hook、Token 覆盖和失败关闭通过      | `.project-to-act/tasks/VC-007/evidence/E-VC-007-001.json` | Session 协议、Hook、安装器或 Skill 变化前 |
 | E-008   | 2026-08-10 | `npm.cmd run verify`；tarball/bin 安装；Skill/治理校验；Token 秘密文本反例           | 0        | 核心文件 SHA-256 见证据 JSON                    | 10 测试、分发、setup/doctor/report、数值 Token 降级和失败关闭通过    | `.project-to-act/tasks/VC-008/evidence/E-VC-008-001.json` | CLI、Session 解析器、安装器或 Skill 变化前 |
+| E-009   | 2026-08-10 | 直接快进推送 main；GitHub Actions Verify run 31364978558                            | 0        | 发布代码 `995d586`                              | Linux Runner 10 项测试与分发检查通过；公共 main 已包含 v0.5.0       | `.project-to-act/tasks/VC-008/evidence/E-VC-008-002.json` | main、工作流、测试或分发入口变化前 |
 
 ## Gate 记录
 
@@ -54,6 +55,7 @@
 
 按时间倒序追加：日期、检查范围、证据 ID、结果、遗留问题和结论。失败、跳过与过期证据也必须如实记录。
 
+- 2026-08-10：v0.5.0 直接发布完成；Draft PR #1 按所有者要求关闭，初次 PR CI 暴露 Linux 错误执行 Windows Hook 测试命令，定向修复后直接快进推送 main，GitHub Actions run 31364978558 成功；证据 E-009。
 - 2026-08-10：VC-008 本地验收通过；打包后的 CLI 可独立安装并报告 0.5.0，Private 临时 Git 仓库一条 setup 命令后 doctor/report 有效，Git 身份自动识别；Hook 无直接 Token 时只读取 transcript 的累计数值，秘密消息不进入 Markdown，未知格式保持 unavailable；证据 E-008。
 - 2026-08-10：VC-007 本地验收通过；默认安装不启用采集，Private 安装的 Windows Hook 可从子目录写入两名 Actor 的独立 Markdown，用户原文、AI 最终响应、墙钟、Git 和 Token 覆盖统计符合协议，Public 策略被拒绝；证据 E-007。真实 Codex Token 字段仍依赖官方事件可用性。
 - 2026-08-05：VC-006 验收通过；官方 Actions v7 已同步到根工作流与安装模板，公共 main CI 成功且不再使用弃用的 v4 runtime；证据 E-006。

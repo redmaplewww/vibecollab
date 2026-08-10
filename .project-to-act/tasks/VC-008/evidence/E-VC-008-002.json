@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "E-VC-008-002",
+  "taskId": "VC-008",
+  "recordedAt": "2026-08-10T07:13:39Z",
+  "release": {
+    "repository": "redmaplewww/vibecollab",
+    "branch": "main",
+    "commit": "995d586332cb2a4d05dcdcf247794655579f3f59",
+    "method": "direct fast-forward push requested by repository owner",
+    "closedPullRequest": 1
+  },
+  "githubActions": {
+    "workflow": "Verify",
+    "runId": 31364978558,
+    "url": "https://github.com/redmaplewww/vibecollab/actions/runs/31364978558",
+    "conclusion": "success",
+    "coverage": "10 Node tests and distribution check on Linux"
+  },
+  "ciCorrection": {
+    "initialFailure": "Linux test invoked commandWindows and /bin/sh rejected the Windows for loop",
+    "fix": "select commandWindows on win32 and command on other platforms",
+    "verification": "local Windows verify and remote Linux main Verify both passed"
+  }
+}
