@@ -47,7 +47,7 @@ function field(markdown, name) {
 
 function section(markdown, title) {
   const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return markdown.match(new RegExp(`^## ${escaped}\\s*\\n([\\s\\S]*?)(?=^## |$)`, "m"))?.[1]?.trim() ?? "";
+  return markdown.match(new RegExp(`^## ${escaped}\\s*\\n([\\s\\S]*?)(?=^## |(?![\\s\\S]))`, "m"))?.[1]?.trim() ?? "";
 }
 
 function git(root, args) {

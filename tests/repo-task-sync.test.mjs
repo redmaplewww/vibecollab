@@ -100,6 +100,46 @@ test("validator blocks code-only PRs and reports functional plus Git progress", 
   }
 });
 
+test("validator counts every acceptance scenario across multiple lines", () => {
+  const root = mkdtempSync(resolve(tmpdir(), "vibecollab-multiline-acceptance-"));
+  try {
+    installRepositoryFiles({ target: root });
+    replaceTask(root, [
+      [
+        "- [ ] Define at least one Given/When/Then or equivalent verifiable scenario.",
+        "- [x] First scenario.\n- [ ] Second scenario.",
+      ],
+    ]);
+
+    const result = validateRepository({ root });
+    assert.deepEqual(result.task.acceptance, { completed: 1, total: 2, percent: 50 });
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("validator blocks done tasks when a later acceptance scenario is unchecked", () => {
+  const root = mkdtempSync(resolve(tmpdir(), "vibecollab-incomplete-acceptance-"));
+  try {
+    installRepositoryFiles({ target: root });
+    replaceTask(root, [
+      ["- Status: `planning`", "- Status: `done`"],
+      ["- Owner: `unassigned`", "- Owner: `alice`"],
+      [
+        "- [ ] Define at least one Given/When/Then or equivalent verifiable scenario.",
+        "- [x] First scenario.\n- [ ] Second scenario.",
+      ],
+      ["- [ ] Replace with the repository's required check commands and results.", "- [x] Tests pass."],
+    ]);
+
+    const result = validateRepository({ root });
+    assert.equal(result.valid, false);
+    assert.match(result.errors.join("\n"), /every acceptance scenario to be checked/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("validator includes uncommitted and untracked local work", () => {
   const root = mkdtempSync(resolve(tmpdir(), "vibecollab-working-tree-"));
   try {
