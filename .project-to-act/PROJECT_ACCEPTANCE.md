@@ -5,9 +5,9 @@
 
 ## 当前验收结论
 
-- 结论：v0.5.0 已直接发布到公共 GitHub main，远程 CI 通过
+- 结论：Private setup 的 npm 分发缺失已修复并通过真实 tarball 验证；远程使用需包含本修复提交
 - 验收范围：一条命令 Private setup、自动 Git 身份、doctor/report、无需手动 Session 生命周期、Hook/Transcript Token 来源、秘密文本隔离、未知格式失败关闭与可安装分发包
-- 最后检查：2026-08-10，10 项 Node 测试、分发检查、独立 tarball/bin 安装、Skill/治理校验、Windows 子目录 Hook 模拟和 Linux main Actions
+- 最后检查：2026-08-23，真实 tarball/bin Private setup、目标 `.ai-team/.gitignore`、Session validate 和独立分发检查通过；完整验证 9/12，3 项既有 macOS 临时路径测试失败
 - 遗留问题：尚未在真实 Codex Private GitHub 仓库触发完整生命周期；transcript Token 解析是版本化降级路径，长期稳定精确计量仍应使用 OpenTelemetry
 
 ## 验收标准
@@ -23,7 +23,7 @@
 | A-007   | 纯文件即可同步代码与 AI 上下文 | 通过 | 空仓库安装、反例门禁、PR merge 后 Bob 独立恢复     | E-004   |
 | A-008   | 公共 GitHub 仓库可直接使用     | 通过 | 匿名 HTTP、Public visibility、远程 main 与 Actions | E-005   |
 | A-009   | Private Session 可安全共享       | 通过 | 默认关闭、双 Actor Hook、独立 MD、公开策略反例与统计 | E-007   |
-| A-010   | 一条命令启用并无感记录           | 通过 | setup/doctor/report、分发 bin、自动身份、Token 降级反例 | E-008   |
+| A-010   | 一条命令启用并无感记录           | 本地通过 | setup/doctor/report、分发 bin、自动身份、Token 降级反例 | E-010   |
 
 ## 证据索引
 
@@ -38,6 +38,7 @@
 | E-007   | 2026-08-10 | `npm.cmd run verify`；Skill 校验；Windows Hook 与公开策略反例                       | 0        | 核心文件 SHA-256 见证据 JSON                    | 8 测试、分发、双 Session、子目录 Hook、Token 覆盖和失败关闭通过      | `.project-to-act/tasks/VC-007/evidence/E-VC-007-001.json` | Session 协议、Hook、安装器或 Skill 变化前 |
 | E-008   | 2026-08-10 | `npm.cmd run verify`；tarball/bin 安装；Skill/治理校验；Token 秘密文本反例           | 0        | 核心文件 SHA-256 见证据 JSON                    | 10 测试、分发、setup/doctor/report、数值 Token 降级和失败关闭通过    | `.project-to-act/tasks/VC-008/evidence/E-VC-008-001.json` | CLI、Session 解析器、安装器或 Skill 变化前 |
 | E-009   | 2026-08-10 | 直接快进推送 main；GitHub Actions Verify run 31364978558                            | 0        | 发布代码 `995d586`                              | Linux Runner 10 项测试与分发检查通过；公共 main 已包含 v0.5.0       | `.project-to-act/tasks/VC-008/evidence/E-VC-008-002.json` | main、工作流、测试或分发入口变化前 |
+| E-010   | 2026-08-23 | `npm pack --dry-run --json`；tarball `vibecollab setup --private --json`；Session validate；`node scripts/check-distribution.mjs`；`npm run verify` | 0；0；0；0；1 | 基线 `2c8b90d`；install `93518ac…`；template `c740db8…` | npm 包含普通模板并正确安装为 `.ai-team/.gitignore`；Private setup/validate 与独立分发检查通过；完整验证 9/12，后续分发步骤因前置失败跳过 | 本文件及本地命令输出 | 安装器、Private 模板、Session 或测试变化前 |
 
 ## Gate 记录
 
@@ -55,6 +56,7 @@
 
 按时间倒序追加：日期、检查范围、证据 ID、结果、遗留问题和结论。失败、跳过与过期证据也必须如实记录。
 
+- 2026-08-23：Private setup npm 分发缺失的最小修复本地验收通过；真实 tarball 安装生成 `.ai-team/.gitignore` 且 Session validate 有效，独立分发检查通过。`npm run verify` 仍有 3 项既有 macOS 临时路径测试失败，并因此跳过串联的分发步骤；远程使用需包含本修复提交；证据 E-010。
 - 2026-08-10：v0.5.0 直接发布完成；Draft PR #1 按所有者要求关闭，初次 PR CI 暴露 Linux 错误执行 Windows Hook 测试命令，定向修复后直接快进推送 main，GitHub Actions run 31364978558 成功；证据 E-009。
 - 2026-08-10：VC-008 本地验收通过；打包后的 CLI 可独立安装并报告 0.5.0，Private 临时 Git 仓库一条 setup 命令后 doctor/report 有效，Git 身份自动识别；Hook 无直接 Token 时只读取 transcript 的累计数值，秘密消息不进入 Markdown，未知格式保持 unavailable；证据 E-008。
 - 2026-08-10：VC-007 本地验收通过；默认安装不启用采集，Private 安装的 Windows Hook 可从子目录写入两名 Actor 的独立 Markdown，用户原文、AI 最终响应、墙钟、Git 和 Token 覆盖统计符合协议，Public 策略被拒绝；证据 E-007。真实 Codex Token 字段仍依赖官方事件可用性。
