@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { installRepositoryFiles } from "./install.mjs";
@@ -187,7 +187,7 @@ export function runCli(argv = process.argv.slice(2)) {
   return result;
 }
 
-const invokedPath = process.argv[1] ? resolve(process.argv[1]) : null;
+const invokedPath = process.argv[1] ? realpathSync(process.argv[1]) : null;
 if (invokedPath === fileURLToPath(import.meta.url)) {
   try {
     runCli();
