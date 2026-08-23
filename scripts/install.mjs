@@ -47,10 +47,13 @@ export function installRepositoryFiles({ target, dryRun = false, privateSessions
   }));
   if (privateSessions) {
     mappings.push(
-      ...listFiles(privateSessionTemplateRoot).map((source) => ({
-        source,
-        destination: resolve(targetRoot, relative(privateSessionTemplateRoot, source)),
-      })),
+      ...listFiles(privateSessionTemplateRoot).map((source) => {
+        const templatePath = relative(privateSessionTemplateRoot, source);
+        return {
+          source,
+          destination: resolve(targetRoot, templatePath === ".ai-team/gitignore.template" ? ".ai-team/.gitignore" : templatePath),
+        };
+      }),
     );
   }
   mappings.push(
