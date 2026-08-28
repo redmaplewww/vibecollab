@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-011",
+  "revision": 0,
+  "baseSha": "e448b0b09d6270dfd7b49c8076ec10629c12747e",
+  "paths": [
+    "scripts/github-report.mjs",
+    "scripts/install.mjs",
+    "scripts/check.mjs",
+    "templates/repository/.github/workflows/repo-task-sync.yml",
+    "templates/repository/.ai-team/PROJECT.md",
+    "skills/repo-task-sync/SKILL.md",
+    "tests/",
+    "README.md",
+    "AGENTS.md",
+    "package.json",
+    "package-lock.json",
+    "docs/",
+    ".project-to-act/"
+  ],
+  "symbols": [
+    "buildGithubProgressReport",
+    "renderGithubProgressMarkdown",
+    "repo-task-sync workflow"
+  ],
+  "contractsWrite": [
+    "github-native-progress-v1"
+  ],
+  "migrations": false
+}

@@ -4,7 +4,6 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { buildSessionReport, validateSessionConfiguration } from "./session.mjs";
 import {
   isTaskFile,
   listTasks,
@@ -19,7 +18,7 @@ const REQUIRED_FILES = [
   ".ai-team/tasks",
   ".ai-team/SKILL.md",
   ".ai-team/task-store.mjs",
-  ".ai-team/session.mjs",
+  ".ai-team/github-report.mjs",
 ];
 
 const REQUIRED_SECTIONS = [
@@ -237,16 +236,11 @@ export function validateRepository({
     errors.push(`Selected task ${selected.id} does not match changed task file ${changedTaskPaths[0]}`);
   }
 
-  const sessionValidation = validateSessionConfiguration({ root: absoluteRoot });
-  errors.push(...sessionValidation.errors);
-  const sessions = buildSessionReport({ root: absoluteRoot });
-
   return {
     valid: errors.length === 0,
     task: selected,
     tasks,
     git: progress,
-    sessions,
     warnings,
     errors,
   };
@@ -268,9 +262,7 @@ function printHuman(result) {
       result.git.available
         ? `Code progress from ${result.git.base}: ${result.git.commits} commits, ${result.git.changedFiles} files, +${result.git.additions}/-${result.git.deletions}`
         : "Code progress: provide --base <target-branch-or-sha> to compare Git changes",
-      result.sessions.enabled
-        ? `Private sessions: ${result.sessions.totals.sessions}; closed: ${result.sessions.totals.closed}; token coverage: ${result.sessions.totals.tokenCoverage.reported}/${result.sessions.totals.tokenCoverage.total}`
-        : "Private sessions: disabled",
+      "Identity and access: managed by GitHub repository permissions",
       ...result.warnings.map((warning) => `Warning: ${warning}`),
       result.valid ? "Result: valid" : `Result: blocked\n- ${result.errors.join("\n- ")}`,
     ].join("\n") + "\n",

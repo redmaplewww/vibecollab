@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { installRepositoryFiles } from "./install.mjs";
@@ -25,7 +25,6 @@ function parseArgs(argv) {
     command,
     action,
     target: process.cwd(),
-    privateSessions: false,
     dryRun: false,
     json: false,
     base: null,
@@ -38,7 +37,6 @@ function parseArgs(argv) {
   for (; cursor < argv.length; cursor += 1) {
     const value = argv[cursor];
     if (value === "--target" || value === "--root") options.target = resolve(argv[++cursor]);
-    else if (value === "--private" || value === "--private-sessions") options.privateSessions = true;
     else if (value === "--dry-run") options.dryRun = true;
     else if (value === "--json") options.json = true;
     else if (value === "--base") options.base = argv[++cursor];
@@ -76,7 +74,6 @@ function setup(options) {
   const installation = installRepositoryFiles({
     target: root,
     dryRun: options.dryRun,
-    privateSessions: options.privateSessions,
     upgrade: options.upgrade,
   });
   const validation = options.dryRun ? null : validateRepository({ root, allTasks: true });
@@ -87,12 +84,10 @@ function setup(options) {
     root,
     version: packageVersion(),
     actor: actor || "unavailable",
-    privateSessions: options.privateSessions,
     installation,
     validation,
     nextActions: [
       ...(actor ? [] : ["Set this repository's Git identity: git config user.name \"Your Name\""]),
-      ...(options.privateSessions ? ["Open Codex in this repository and trust the project Hook once"] : []),
       "Edit the generated TASK-000 or create a task with: vibecollab task create <ID> --title <title>",
       "Commit the generated collaboration files and share them through your normal pull request",
     ],
@@ -103,7 +98,6 @@ function doctor(options) {
   const root = repositoryRoot(options.target);
   const validation = validateRepository({ root, base: options.base, taskId: options.taskId, allTasks: true });
   const actor = identity(root);
-  const hooksInstalled = existsSync(resolve(root, ".codex/hooks.json"));
   return {
     ok: validation.valid && Boolean(actor),
     command: "doctor",
@@ -114,8 +108,6 @@ function doctor(options) {
       gitIdentity: Boolean(actor),
       collaborationFiles: validation.valid,
       tasks: validation.tasks.length > 0,
-      privateHook: hooksInstalled,
-      privateSessions: validation.sessions.enabled,
     },
     validation,
     actions: [
@@ -141,7 +133,6 @@ function report(options) {
     task: validation.task,
     tasks: validation.tasks,
     git: validation.git,
-    sessions: validation.sessions,
     warnings: validation.warnings,
     errors: validation.errors,
   };
@@ -187,9 +178,8 @@ function printHuman(result) {
     process.stdout.write(
       [
         `VibeCollab ${result.version} is ready in ${result.root}`,
-        `Private session journal: ${result.privateSessions ? "enabled" : "disabled"}`,
         `Actor: ${result.actor}`,
-        `Created ${result.installation.created.length}; appended ${result.installation.appended.length}; updated ${result.installation.updated.length}; unchanged ${result.installation.unchanged.length}`,
+        `Created ${result.installation.created.length}; appended ${result.installation.appended.length}; updated ${result.installation.updated.length}; retired ${result.installation.removed.length}; unchanged ${result.installation.unchanged.length}`,
         ...result.nextActions.map((action, index) => `${index + 1}. ${action}`),
       ].join("\n") + "\n",
     );
@@ -214,7 +204,6 @@ function printHuman(result) {
     process.stdout.write(`${result.migration.dryRun ? "Would migrate" : "Migrated"} ${result.migration.from} -> ${result.migration.to}\n`);
     return;
   }
-  const sessions = result.sessions.totals;
   const taskLines = result.task
     ? [
         `Task ${result.task.id}: ${result.task.title}`,
@@ -227,7 +216,7 @@ function printHuman(result) {
       result.git.available
         ? `Code progress: ${result.git.commits} commits, ${result.git.changedFiles} files, +${result.git.additions}/-${result.git.deletions}`
         : "Code progress: add --base <branch-or-sha> for a Git comparison",
-      `Sessions: ${sessions.sessions}; elapsed: ${sessions.elapsedSeconds}s; Token coverage: ${sessions.tokenCoverage.reported}/${sessions.tokenCoverage.total}`,
+      "Identity and access: GitHub repository permissions",
       `Result: ${result.ok ? "valid" : "blocked"}`,
       ...result.warnings.map((warning) => `- Warning: ${warning}`),
       ...result.errors.map((error) => `- ${error}`),
@@ -240,7 +229,7 @@ function help() {
     "VibeCollab — file-only collaboration for AI coding teams",
     "",
     "Usage:",
-    "  vibecollab setup --private [--upgrade]",
+    "  vibecollab setup [--upgrade]",
     "  vibecollab task create <ID> --title <title> [--owner <owner>]",
     "  vibecollab task use <ID>",
     "  vibecollab task list",
@@ -248,7 +237,7 @@ function help() {
     "  vibecollab report [--task <ID>|--all] [--base main]",
     "  vibecollab migrate multi-task --dry-run",
     "",
-    "Options: --target <path> --json --dry-run --private --upgrade --base <ref> --task <ID> --all",
+    "Options: --target <path> --json --dry-run --upgrade --base <ref> --task <ID> --all",
   ].join("\n");
 }
 

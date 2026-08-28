@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "sessionId": "s-d21230ba-a25f-48d8-9c6d-61c2252450db",
+  "taskId": "VC-011",
+  "actorId": "codex",
+  "executor": "codex",
+  "executorVersion": null,
+  "model": null,
+  "source": "cli-tracked",
+  "status": "completed",
+  "startedAt": "2026-08-28T16:04:40.950Z",
+  "endedAt": "2026-08-28T16:16:14.263Z",
+  "elapsedSeconds": 693,
+  "gitStart": {
+    "available": true,
+    "headSha": "e448b0b09d6270dfd7b49c8076ec10629c12747e",
+    "clean": false,
+    "statusHash": "fd22f4b5d0da6528915470628d6c8fd494c113ff1d6f0e2c8ad92f126f9016c2"
+  },
+  "gitMetrics": {
+    "available": false,
+    "reason": "dirty-session-start",
+    "startStatusHash": "fd22f4b5d0da6528915470628d6c8fd494c113ff1d6f0e2c8ad92f126f9016c2"
+  },
+  "toolReported": null,
+  "summary": "GitHub 原生无感模式完成：删除 Session/Hook 采集运行时，新增只读 Actions 功能与代码进度摘要，9 项测试和分发检查通过。"
+}

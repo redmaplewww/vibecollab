@@ -9,9 +9,9 @@
 - 项目 ID：VC
 - 项目负责人：项目维护者
 - 风险等级：T3（多仓库、多人和多 AI 协作控制面）
-- 当前阶段：v0.6.0 多任务协议与可选 Monitor 开发
-- 当前状态：VC-009、VC-010 已建立任务契约；先完成多任务协议，再接入 Monitor
-- 最后更新：2026-08-28
+- 当前阶段：v0.6.0 GitHub 原生无感协作收敛
+- 当前状态：v0.6.0 GitHub 原生协作已本地验收；待发布到 GitHub main 后验证真实 Actions
+- 最后更新：2026-08-29
 
 ## 项目目标
 
@@ -19,8 +19,7 @@
 - 让不同人员和不同 AI 通过同一任务契约、上下文、修改意图和验收证据保持实现一致。
 - 让多人通过不同 Task、分支和 PR 并行开发；同一个 Task 换人时仍按单写入者顺序接力。
 - 让 GitHub PR 同时承载代码变更、功能进度和 AI 接力上下文。
-- 在明确声明为 Private 的团队仓库中，可选保存低优先级 Codex Session Markdown，用于跨成员追溯用户原始提交、AI 工作总结、耗时、Git 证据和可用 Token 数据。
-- 可选部署 Monitor，近实时汇总多 Task、成员、GitHub PR/CI、AI 会话、Token 和估算活跃时间，但不取代仓库事实源。
+- 让 GitHub 账号、仓库权限、Commit、PR 和 Actions 成为唯一身份与进度表面，不建立第二套账号或服务。
 
 ## 范围
 
@@ -29,32 +28,31 @@
 - 可复制的 `AGENTS.md`、`.ai-team` Markdown 文件和零依赖校验脚本。
 - 工具无关 Skill、GitHub PR 模板和 required check 工作流。
 - 通过 Git commit/PR/merge 原子同步代码、功能进度和上下文。
-- 私有仓库显式启用的 Session 策略、零依赖记录器与 Codex 生命周期 Hook 薄适配。
 - 不同 Task 的目录化并行协作、任务选择和旧单 Task 显式迁移。
-- 可选的脱敏事件采集、GitHub 投影和团队 Monitor。
+- GitHub Actions 自动读取任务文件与 Commit，生成原生检查和功能/代码进度摘要。
 
 ### 非目标
 
 - 不生成业务代码，不执行被观察源码，不自动合并或部署。
-- Core 不依赖 Web 控制台、数据库、账号或集中式遥测；Monitor 是可选组件，不提供秒级键盘级在线监控。
-- 不保存系统/开发者提示、隐藏思维链、原始工具输出、私有源码副本或键盘逐键行为；公开仓库不得启用原始用户提交采集。
+- 不建设独立 Monitor、Web 控制台、数据库、Bearer Token、设备连接、Outbox 或集中式遥测。
+- 不采集 Session、AI 对话、Token、系统/开发者提示、隐藏思维链、原始工具输出、私有源码副本或键盘逐键行为。
 
 ## 技术路线与关键约束
 
 - Markdown + Node.js 内置模块 + Git/GitHub；状态事实与代码保存在同一提交。
 - `AGENTS.md` 是任何 AI 的固定入口；PROJECT 与按 ID 分离的任务目录分别保存稳定背景和各任务进度。
 - Skill 只定义通用流程，不要求任何专属 AI 工具或插件。
-- 私有 Session 是可选适配层：每会话独立文件，Hook 消费官方事件；仅在事件不含 Token 时由版本化解析器读取 `transcript_path` 的数值型累计用量，绝不复制 transcript 文本；Session 始终低于 PROJECT、TASK、代码和测试。
+- GitHub Actions Summary 是可从 Task 与 Git 历史重建的派生视图，不成为第二事实源。
 
 ## 数据与安全边界
 
-- 数据分类：项目背景、任务事实、Git 元数据；私有仓库可选保存用户原始提交和最终 AI 响应，公开仓库不保存。
-- 敏感信息处理：不保存系统/开发者提示、思维链、原始工具输出、私有源码副本、凭据或键盘行为；私有 Session 提交前必须人工审查。
+- 数据分类：项目背景、任务事实和 Git 元数据。
+- 敏感信息处理：不保存系统/开发者提示、思维链、原始工具输出、私有源码副本、凭据、AI 对话、Token 或键盘行为。
 
 ## 当前焦点
 
-- 下一里程碑：完成 Multi-task Protocol v1 和可选 Monitor MVP，并用三人多任务旅程验收。
-- 当前工作重点：VC-009 多任务目录、任务 CLI、CI/Session 归属和旧版迁移；VC-010 等待其协议稳定后实施。
+- 下一里程碑：将 v0.6.0 发布到公共 GitHub main，并验证真实 PR/push Actions Summary。
+- 当前工作重点：本地实现和 9 项测试已通过，等待仓库所有者批准发布。
 - 主要阻塞：无已知阻塞
 
 ## 按需读取索引
@@ -70,6 +68,8 @@
 ## 路线变更记录
 
 按时间倒序追加：决定 ID、日期、决定、原因、影响、证据 ID、确认来源和复审条件。
+
+- DEC-008，2026-08-29：取消独立 Monitor、Bearer Token、connect/checkpoint、Outbox、Docker 服务和独立看板，产品收敛为 GitHub 原生无感模式。GitHub 账号与仓库权限负责用户隔离；任务文件负责功能进度；Commit/PR/Actions 负责代码和验收证据；成员日常不运行 VibeCollab 命令。原因：用户认为独立服务和 npx 工作流过度复杂，并明确要求忽略其他路线；影响：F-009/VC-010 取消，v0.6.0 改为 GitHub Native Progress；复审条件：只有 GitHub 原生能力明确无法满足且用户重新批准独立服务时才恢复评估。
 
 - DEC-007，2026-08-28：VibeCollab 从全仓库单一 TASK 扩展为“不同 Task 可并行、同一 Task 单写入者顺序接力”，并在纯文件 Core 之外增加可选 Monitor；先冻结多任务协议，再开发事件采集、GitHub 投影和团队看板。原因：用户确认多人并行开发应维护不同 Task，并批准与已归档 Monitor 方案一同开发；影响：v0.6.0 将引入任务目录和显式迁移，Monitor 不成为新的事实源；证据待 VC-009、VC-010 验收后补充；复审条件：多任务或 Monitor 破坏无服务 Core、隐私边界或 Git 原子同步。
 

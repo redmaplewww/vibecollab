@@ -1,7 +1,7 @@
 {
   "name": "vibecollab",
-  "version": "0.5.0",
-  "description": "File-only context synchronization for human and AI coding teams through Git pull requests.",
+  "version": "0.6.0",
+  "description": "GitHub-native functional and code progress synchronization for human and AI coding teams.",
   "private": true,
   "type": "module",
   "homepage": "https://github.com/redmaplewww/vibecollab#readme",

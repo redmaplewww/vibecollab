@@ -12,9 +12,9 @@ try {
   const canonicalSkill = readFileSync(resolve("skills/repo-task-sync/SKILL.md"), "utf8");
   const installedSkill = readFileSync(resolve(target, ".ai-team/SKILL.md"), "utf8");
   if (canonicalSkill !== installedSkill) throw new Error("Installed Skill differs from the canonical Skill");
-  const canonicalSession = readFileSync(resolve("scripts/session.mjs"), "utf8");
-  const installedSession = readFileSync(resolve(target, ".ai-team/session.mjs"), "utf8");
-  if (canonicalSession !== installedSession) throw new Error("Installed session recorder differs from canonical source");
+  const canonicalReport = readFileSync(resolve("scripts/github-report.mjs"), "utf8");
+  const installedReport = readFileSync(resolve(target, ".ai-team/github-report.mjs"), "utf8");
+  if (canonicalReport !== installedReport) throw new Error("Installed GitHub report differs from canonical source");
   const canonicalTaskStore = readFileSync(resolve("scripts/task-store.mjs"), "utf8");
   const installedTaskStore = readFileSync(resolve(target, ".ai-team/task-store.mjs"), "utf8");
   if (canonicalTaskStore !== installedTaskStore) throw new Error("Installed task store differs from canonical source");
@@ -23,14 +23,6 @@ try {
     throw new Error("Package does not expose the vibecollab CLI");
   }
 
-  const privateTarget = mkdtempSync(resolve(tmpdir(), "vibecollab-private-dist-"));
-  try {
-    installRepositoryFiles({ target: privateTarget, privateSessions: true });
-    const privateResult = validateRepository({ root: privateTarget });
-    if (!privateResult.valid) throw new Error(privateResult.errors.join("\n"));
-  } finally {
-    rmSync(privateTarget, { recursive: true, force: true });
-  }
   process.stdout.write("Distribution check passed\n");
 } finally {
   rmSync(target, { recursive: true, force: true });

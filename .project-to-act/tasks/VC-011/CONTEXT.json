@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-011",
+  "baseSha": "e448b0b09d6270dfd7b49c8076ec10629c12747e",
+  "inputs": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "1a5af2a1397acafb373e2ebe1096d60c736a23cc691095b316808147acd4d77a",
+      "bytes": 1871,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/PROJECT_OVERVIEW.md",
+      "sha256": "42a1a968ec6bc11ef7e03674e24ec3b429692fa1d4866dc8c832e978cfe1f4c4",
+      "bytes": 7622,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/COLLABORATION_CONFIG.json",
+      "sha256": "5dee6b22c829fe7e01fb5b8491a69853498d6c24aa785c758763042c92b85fcd",
+      "bytes": 543,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/skill/SKILL.md",
+      "sha256": "ef4702dd4e6d7ba67526aa91b691884df7e1416bccf95e28f0eb75db63efe464",
+      "bytes": 4043,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/tasks/VC-011/TASK.json",
+      "sha256": "22da63b4a5e5726ee0d038fb492fa56b642a9ef5a6d9ffb7e1722171171c9ec9",
+      "bytes": 3893,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/tasks/VC-011/INTENT.json",
+      "sha256": "5f695cbc49a73da442f8bf17d030c39a854dac715be74e5cabe25fbbc8f9e818",
+      "bytes": 705,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/PROJECT_PROGRESS.md",
+      "sha256": "0c9e115723f65e61450f67272dff355bb925490ee47c9348bb38e62b40bf94ae",
+      "bytes": 7004,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": "README.md",
+      "sha256": "df23652ffae72813ef22a77b6c0914c292023627cad92922dd5f6bc301bf8810",
+      "bytes": 4450,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": "skills/repo-task-sync/SKILL.md",
+      "sha256": "176ecf0d7de80dab45fa803d5d1c76f7b853e93759297881e62f12c46aa32e27",
+      "bytes": 3307,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": "templates/repository/.ai-team/PROJECT.md",
+      "sha256": "2f723c9be93cff6150cbc373817dcecd13d3bb637297c35580afb1f699702f36",
+      "bytes": 1053,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": "templates/repository/.github/workflows/repo-task-sync.yml",
+      "sha256": "a4a1beeb2de666ace8ada37b84ebb03f3da245ea3c62567e7499f4c1922a9a95",
+      "bytes": 991,
+      "normalization": "utf8-lf"
+    }
+  ],
+  "createdAt": "2026-08-28T16:15:59.920Z",
+  "contextHash": "370a0108c6ca4278a4b27f6de75e483d54bbba78731138908a12a0663208b534"
+}

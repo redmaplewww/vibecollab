@@ -15,5 +15,4 @@
 - [ ] I updated code and the corresponding Task file in this same PR.
 - [ ] Acceptance, decisions, completed work, pending work, and next step are current.
 - [ ] The next developer can continue without my AI chat or local memory.
-- [ ] If private sessions are enabled, I reviewed the generated Session Markdown and ran `node .ai-team/session.mjs validate`.
 - [ ] Required checks passed on the latest commit.

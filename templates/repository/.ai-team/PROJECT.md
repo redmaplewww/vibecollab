@@ -19,7 +19,7 @@ Describe the product outcome this repository exists to deliver.
 ## Invariants
 
 - Never commit credentials, private source copies, system/developer prompts, raw tool output, keyboard activity, or chain-of-thought.
-- Raw user submissions may be committed only when the repository is private and `.ai-team/session-policy.json` explicitly enables verbatim capture.
+- Keep AI chats, transcripts and local activity outside the shared project facts.
 - Preserve existing behavior unless the active task explicitly changes it.
 - Let tests and CI decide observable behavior.
 

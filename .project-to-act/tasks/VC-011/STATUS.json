@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-011",
+  "state": "done",
+  "revision": 8,
+  "owner": "codex",
+  "branch": "codex/vc-011-github-native",
+  "contextHash": "370a0108c6ca4278a4b27f6de75e483d54bbba78731138908a12a0663208b534",
+  "updatedAt": "2026-08-28T16:16:30.369Z",
+  "lastCheckpoint": null,
+  "activeSessionId": null,
+  "currentActor": null,
+  "handoffState": "paused",
+  "handoffId": null
+}

@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "E-VC-011-001",
+  "taskId": "VC-011",
+  "recordedAt": "2026-08-29T00:00:00+08:00",
+  "baseSha": "e448b0b09d6270dfd7b49c8076ec10629c12747e",
+  "commands": [
+    {
+      "command": "npm run verify",
+      "exitCode": 0,
+      "result": "9 Node tests passed and distribution check passed"
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "result": "No whitespace errors"
+    }
+  ],
+  "journeys": [
+    "Maintainer installs the repository package once; ordinary members receive all collaboration files through Git pull",
+    "Alice and Bob commit sequential changes to the same Task and the report preserves one functional contract while grouping both Git authors",
+    "Alice and Bob can own different Task directories without a shared mutable current-task file",
+    "Pull request, main push and manual GitHub Actions triggers use read-only contents permission and publish Job Summary",
+    "Upgrade retires the previous session recorder, policy and hook while preserving project facts, Task facts and historical evidence files"
+  ],
+  "fileHashes": {
+    "scripts/github-report.mjs": "c6c36e9f1dd005bc4a290dbcf5519a0343092f30a0488486b9fcac092df35b77",
+    "scripts/check.mjs": "877910106cdc07bccf22129cb339bc0669975af25eee329e1dd64a97b28225b9",
+    "scripts/install.mjs": "0bbc3148d23885b2d4778ee4eb956732fff87879ed17b1400b8bcb02b9ea4222",
+    "templates/repository/.github/workflows/repo-task-sync.yml": "a4a1beeb2de666ace8ada37b84ebb03f3da245ea3c62567e7499f4c1922a9a95",
+    "skills/repo-task-sync/SKILL.md": "176ecf0d7de80dab45fa803d5d1c76f7b853e93759297881e62f12c46aa32e27",
+    "tests/github-native-report.test.mjs": "3fdd74304b2fd84601e2d6018ee0e90cd28b2df44e0619b473a998fa60ee7041",
+    "tests/repo-task-sync.test.mjs": "c4d3db1bd4db02e6b34f2108e65ffd6b4a59ebf5b0f7550cdfa79032db400ce4"
+  },
+  "limitations": [
+    "Real GitHub pull-request and main-push Job Summary remains unverified until this branch is published",
+    "GitHub-native evidence cannot observe uncommitted local work or focused work hours",
+    "Git commit author statistics are change-volume evidence and are not individual performance scores"
+  ]
+}

@@ -1,24 +1,27 @@
 #!/usr/bin/env node
 
-import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, unlinkSync, writeFileSync } from "node:fs";
 import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const templateRoot = resolve(packageRoot, "templates/repository");
-const privateSessionTemplateRoot = resolve(packageRoot, "templates/private-session");
 const START = "<!-- repo-task-sync:start -->";
 const END = "<!-- repo-task-sync:end -->";
 const UPGRADEABLE = new Set([
   ".ai-team/SKILL.md",
   ".ai-team/check.mjs",
-  ".ai-team/session.mjs",
+  ".ai-team/github-report.mjs",
   ".ai-team/task-store.mjs",
-  ".codex/hooks.json",
   ".github/PULL_REQUEST_TEMPLATE/repo-task-sync.md",
   ".github/workflows/repo-task-sync.yml",
 ]);
 const PRESERVE_ON_UPGRADE = new Set([".ai-team/PROJECT.md"]);
+const RETIRED_RUNTIME_FILES = [
+  ".ai-team/session.mjs",
+  ".ai-team/session-policy.json",
+  ".codex/hooks.json",
+];
 
 function listFiles(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -30,24 +33,22 @@ function listFiles(directory) {
 function parseArgs(argv) {
   let target = null;
   let dryRun = false;
-  let privateSessions = false;
   let upgrade = false;
   for (let index = 0; index < argv.length; index += 1) {
     if (argv[index] === "--target") target = argv[++index];
     else if (argv[index] === "--dry-run") dryRun = true;
-    else if (argv[index] === "--private-sessions") privateSessions = true;
     else if (argv[index] === "--upgrade") upgrade = true;
     else throw new Error(`Unknown argument: ${argv[index]}`);
   }
   if (!target) {
     throw new Error(
-      "Usage: node scripts/install.mjs --target <repository> [--private-sessions] [--upgrade] [--dry-run]",
+      "Usage: node scripts/install.mjs --target <repository> [--upgrade] [--dry-run]",
     );
   }
-  return { target: resolve(target), dryRun, privateSessions, upgrade };
+  return { target: resolve(target), dryRun, upgrade };
 }
 
-export function installRepositoryFiles({ target, dryRun = false, privateSessions = false, upgrade = false }) {
+export function installRepositoryFiles({ target, dryRun = false, upgrade = false }) {
   const targetRoot = resolve(target);
   if (!existsSync(targetRoot) || !statSync(targetRoot).isDirectory()) {
     throw new Error(`Target directory does not exist: ${targetRoot}`);
@@ -67,18 +68,10 @@ export function installRepositoryFiles({ target, dryRun = false, privateSessions
         ".ai-team/tasks/TASK-000-define-first-task/TASK.md",
     );
   }
-  if (privateSessions) {
-    mappings.push(
-      ...listFiles(privateSessionTemplateRoot).map((source) => ({
-        source,
-        destination: resolve(targetRoot, relative(privateSessionTemplateRoot, source)),
-      })),
-    );
-  }
   mappings.push(
     { source: resolve(packageRoot, "skills/repo-task-sync/SKILL.md"), destination: resolve(targetRoot, ".ai-team/SKILL.md") },
     { source: resolve(packageRoot, "scripts/check.mjs"), destination: resolve(targetRoot, ".ai-team/check.mjs") },
-    { source: resolve(packageRoot, "scripts/session.mjs"), destination: resolve(targetRoot, ".ai-team/session.mjs") },
+    { source: resolve(packageRoot, "scripts/github-report.mjs"), destination: resolve(targetRoot, ".ai-team/github-report.mjs") },
     { source: resolve(packageRoot, "scripts/task-store.mjs"), destination: resolve(targetRoot, ".ai-team/task-store.mjs") },
   );
 
@@ -105,6 +98,15 @@ export function installRepositoryFiles({ target, dryRun = false, privateSessions
   const unchanged = [];
   const appended = [];
   const updated = [];
+  const removed = [];
+  if (upgrade && !dryRun) {
+    for (const destinationName of RETIRED_RUNTIME_FILES) {
+      const path = resolve(targetRoot, destinationName);
+      if (!existsSync(path)) continue;
+      unlinkSync(path);
+      removed.push(destinationName);
+    }
+  }
   for (const mapping of mappings) {
     const destinationName = relative(targetRoot, mapping.destination).replaceAll("\\", "/");
     const incoming = readFileSync(mapping.source, "utf8");
@@ -142,7 +144,7 @@ export function installRepositoryFiles({ target, dryRun = false, privateSessions
     created.push(destinationName);
   }
 
-  return { valid: true, target: targetRoot, dryRun, privateSessions, upgrade, created, appended, updated, unchanged };
+  return { valid: true, target: targetRoot, dryRun, upgrade, created, appended, updated, removed, unchanged };
 }
 
 const invokedPath = process.argv[1] ? resolve(process.argv[1]) : null;
