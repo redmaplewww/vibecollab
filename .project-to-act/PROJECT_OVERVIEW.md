@@ -9,17 +9,18 @@
 - 项目 ID：VC
 - 项目负责人：项目维护者
 - 风险等级：T3（多仓库、多人和多 AI 协作控制面）
-- 当前阶段：v0.5.0 已发布，进入私有团队试运行
-- 当前状态：v0.5.0 已直接发布到公共 GitHub main，Linux GitHub Actions 验证通过
-- 最后更新：2026-08-10
+- 当前阶段：v0.6.0 多任务协议与可选 Monitor 开发
+- 当前状态：VC-009、VC-010 已建立任务契约；先完成多任务协议，再接入 Monitor
+- 最后更新：2026-08-28
 
 ## 项目目标
 
 - 建立独立于业务应用且无需运行服务的团队 Vibe Coding 协作协议包。
 - 让不同人员和不同 AI 通过同一任务契约、上下文、修改意图和验收证据保持实现一致。
-- 让两个人在同一个 Task 上轮流开发，交接时同步代码、功能进度、实现决策和 AI 上下文。
+- 让多人通过不同 Task、分支和 PR 并行开发；同一个 Task 换人时仍按单写入者顺序接力。
 - 让 GitHub PR 同时承载代码变更、功能进度和 AI 接力上下文。
 - 在明确声明为 Private 的团队仓库中，可选保存低优先级 Codex Session Markdown，用于跨成员追溯用户原始提交、AI 工作总结、耗时、Git 证据和可用 Token 数据。
+- 可选部署 Monitor，近实时汇总多 Task、成员、GitHub PR/CI、AI 会话、Token 和估算活跃时间，但不取代仓库事实源。
 
 ## 范围
 
@@ -29,17 +30,19 @@
 - 工具无关 Skill、GitHub PR 模板和 required check 工作流。
 - 通过 Git commit/PR/merge 原子同步代码、功能进度和上下文。
 - 私有仓库显式启用的 Session 策略、零依赖记录器与 Codex 生命周期 Hook 薄适配。
+- 不同 Task 的目录化并行协作、任务选择和旧单 Task 显式迁移。
+- 可选的脱敏事件采集、GitHub 投影和团队 Monitor。
 
 ### 非目标
 
 - 不生成业务代码，不执行被观察源码，不自动合并或部署。
-- 不提供 Web 控制台、SaaS、多租户、账号、集中式遥测或秒级在线状态。
+- Core 不依赖 Web 控制台、数据库、账号或集中式遥测；Monitor 是可选组件，不提供秒级键盘级在线监控。
 - 不保存系统/开发者提示、隐藏思维链、原始工具输出、私有源码副本或键盘逐键行为；公开仓库不得启用原始用户提交采集。
 
 ## 技术路线与关键约束
 
 - Markdown + Node.js 内置模块 + Git/GitHub；状态事实与代码保存在同一提交。
-- `AGENTS.md` 是任何 AI 的固定入口；PROJECT 与 TASK 分离稳定背景和当前进度。
+- `AGENTS.md` 是任何 AI 的固定入口；PROJECT 与按 ID 分离的任务目录分别保存稳定背景和各任务进度。
 - Skill 只定义通用流程，不要求任何专属 AI 工具或插件。
 - 私有 Session 是可选适配层：每会话独立文件，Hook 消费官方事件；仅在事件不含 Token 时由版本化解析器读取 `transcript_path` 的数值型累计用量，绝不复制 transcript 文本；Session 始终低于 PROJECT、TASK、代码和测试。
 
@@ -50,8 +53,8 @@
 
 ## 当前焦点
 
-- 下一里程碑：用 5–10 个真实私有团队 PR 试运行并冻结 Repo Task Sync Protocol v1。
-- 当前工作重点：在私有目标仓库验证一条命令安装、Hook 信任和真实 Codex 生命周期事件。
+- 下一里程碑：完成 Multi-task Protocol v1 和可选 Monitor MVP，并用三人多任务旅程验收。
+- 当前工作重点：VC-009 多任务目录、任务 CLI、CI/Session 归属和旧版迁移；VC-010 等待其协议稳定后实施。
 - 主要阻塞：无已知阻塞
 
 ## 按需读取索引
@@ -67,6 +70,8 @@
 ## 路线变更记录
 
 按时间倒序追加：决定 ID、日期、决定、原因、影响、证据 ID、确认来源和复审条件。
+
+- DEC-007，2026-08-28：VibeCollab 从全仓库单一 TASK 扩展为“不同 Task 可并行、同一 Task 单写入者顺序接力”，并在纯文件 Core 之外增加可选 Monitor；先冻结多任务协议，再开发事件采集、GitHub 投影和团队看板。原因：用户确认多人并行开发应维护不同 Task，并批准与已归档 Monitor 方案一同开发；影响：v0.6.0 将引入任务目录和显式迁移，Monitor 不成为新的事实源；证据待 VC-009、VC-010 验收后补充；复审条件：多任务或 Monitor 破坏无服务 Core、隐私边界或 Git 原子同步。
 
 - DEC-006，2026-08-10：Private 模式收敛为 `vibecollab setup --private` 一条安装命令、一次 Hook 信任和之后零手动 start/stop；成员身份自动读取仓库 Git 配置。Token 优先使用 Hook 字段，缺失时只解析 Hook 提供的 transcript 路径中的数值型累计用量，并记录解析器版本；任何格式变化都失败关闭为 unavailable。原因：用户要求安装部署更简单且仍采集 Token；影响：v0.5.0 增加无依赖 CLI、doctor/report、分发 bin 和 transcript 数值降级解析；证据 E-008；确认来源：用户要求开始实现并尽可能无感操作。
 

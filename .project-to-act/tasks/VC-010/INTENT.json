@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-010",
+  "revision": 0,
+  "baseSha": "9673c576ab7e61f1f43af62565988532d79e0fa7",
+  "paths": [
+    "apps/monitor/",
+    "packages/",
+    "deploy/",
+    "scripts/",
+    "templates/private-session/",
+    "tests/",
+    "package.json",
+    "package-lock.json",
+    "README.md",
+    "docs/",
+    ".project-to-act/"
+  ],
+  "symbols": [
+    "WorkEventV1",
+    "enqueueEvent",
+    "flushOutbox",
+    "ingestEvents",
+    "verifyGithubWebhook",
+    "buildTeamProjection"
+  ],
+  "contractsWrite": [
+    "work-event-v1",
+    "monitor-projection-v1"
+  ],
+  "migrations": true
+}

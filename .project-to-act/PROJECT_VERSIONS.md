@@ -11,9 +11,9 @@
 
 ## 下一版本计划
 
-- 目标版本：`0.5.1` 或 Repo Task Sync Protocol v1
-- 计划内容：根据真实 Private GitHub 团队试运行反馈完善 Hook 信任、受控升级和稳定 Token 数据源覆盖
-- 发布条件：5–10 个真实 PR 完成交接且没有范围外改动、上下文丢失或会话隐私事故
+- 目标版本：`0.6.0`
+- 计划内容：Multi-task Protocol v1、任务 CLI、CI/Session 精确归属、旧单 Task 显式迁移，以及依赖该协议的可选 Monitor MVP
+- 发布条件：不同 Task 并行、同 Task 顺序接力、迁移、离线事件、GitHub 投影、团队看板和隐私反例全部有新鲜证据；无服务 Core 仍可独立使用
 
 ## 版本历史
 

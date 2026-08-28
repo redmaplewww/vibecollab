@@ -5,12 +5,20 @@ import { resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { buildSessionReport, validateSessionConfiguration } from "./session.mjs";
+import {
+  isTaskFile,
+  listTasks,
+  resolveTask,
+  taskField,
+  taskSection,
+} from "./task-store.mjs";
 
 const REQUIRED_FILES = [
   "AGENTS.md",
   ".ai-team/PROJECT.md",
-  ".ai-team/TASK.md",
+  ".ai-team/tasks",
   ".ai-team/SKILL.md",
+  ".ai-team/task-store.mjs",
   ".ai-team/session.mjs",
 ];
 
@@ -29,25 +37,17 @@ const REQUIRED_SECTIONS = [
 const VALID_STATES = new Set(["planning", "active", "handoff", "blocked", "done"]);
 
 function parseArgs(argv) {
-  const options = { root: process.cwd(), base: null, json: false };
+  const options = { root: process.cwd(), base: null, json: false, taskId: null, allTasks: false };
   for (let index = 0; index < argv.length; index += 1) {
     const value = argv[index];
     if (value === "--root") options.root = resolve(argv[++index]);
     else if (value === "--base") options.base = argv[++index];
+    else if (value === "--task") options.taskId = argv[++index];
+    else if (value === "--all") options.allTasks = true;
     else if (value === "--json") options.json = true;
     else throw new Error(`Unknown argument: ${value}`);
   }
   return options;
-}
-
-function field(markdown, name) {
-  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return markdown.match(new RegExp("^- " + escaped + ": `([^`]+)`$", "m"))?.[1]?.trim() ?? null;
-}
-
-function section(markdown, title) {
-  const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return markdown.match(new RegExp(`^## ${escaped}\\s*\\n([\\s\\S]*?)(?=^## |$)`, "m"))?.[1]?.trim() ?? "";
 }
 
 function git(root, args) {
@@ -65,63 +65,67 @@ function isCollaborationFile(path) {
   );
 }
 
-export function validateRepository({ root = process.cwd(), base = null } = {}) {
-  const absoluteRoot = resolve(root);
-  const errors = [];
-  for (const path of REQUIRED_FILES) {
-    if (!existsSync(resolve(absoluteRoot, path))) errors.push(`Missing required file: ${path}`);
-  }
-
-  const taskPath = resolve(absoluteRoot, ".ai-team/TASK.md");
-  const task = existsSync(taskPath) ? readFileSync(taskPath, "utf8").replaceAll("\r\n", "\n") : "";
-  const agentsPath = resolve(absoluteRoot, "AGENTS.md");
-  const agents = existsSync(agentsPath) ? readFileSync(agentsPath, "utf8") : "";
-  if (agents && !agents.includes("<!-- repo-task-sync:start -->")) {
-    errors.push("AGENTS.md does not contain the repo-task-sync entry marker");
-  }
+function taskSummary(task, errors) {
+  const markdown = task.markdown;
+  const label = task.path;
   const metadata = {
-    id: field(task, "ID"),
-    title: field(task, "Title"),
-    status: field(task, "Status"),
-    owner: field(task, "Owner"),
-    nextOwner: field(task, "Next owner"),
+    id: taskField(markdown, "ID"),
+    title: taskField(markdown, "Title"),
+    revision: Number(taskField(markdown, "Revision") ?? 0),
+    status: taskField(markdown, "Status"),
+    owner: taskField(markdown, "Owner"),
+    nextOwner: taskField(markdown, "Next owner"),
+    path: task.path,
+    legacy: task.kind === "legacy",
   };
 
   for (const [name, value] of Object.entries(metadata)) {
-    if (!value) errors.push(`TASK.md is missing metadata: ${name}`);
+    if (["path", "legacy", "revision"].includes(name)) continue;
+    if (!value) errors.push(`${label} is missing metadata: ${name}`);
+  }
+  if (!Number.isInteger(metadata.revision) || metadata.revision < 0) {
+    errors.push(`${label} has invalid Revision`);
   }
   if (metadata.status && !VALID_STATES.has(metadata.status)) {
-    errors.push(`TASK.md has invalid Status: ${metadata.status}`);
+    errors.push(`${label} has invalid Status: ${metadata.status}`);
   }
   for (const title of REQUIRED_SECTIONS) {
-    if (!section(task, title)) errors.push(`TASK.md section is missing or empty: ${title}`);
+    if (!taskSection(markdown, title)) errors.push(`${label} section is missing or empty: ${title}`);
   }
   if (["active", "handoff", "blocked", "done"].includes(metadata.status) && metadata.owner === "unassigned") {
-    errors.push(`TASK.md Status ${metadata.status} requires an assigned Owner`);
+    errors.push(`${label} Status ${metadata.status} requires an assigned Owner`);
   }
   if (metadata.status === "handoff" && (!metadata.nextOwner || metadata.nextOwner === "unassigned")) {
-    errors.push("TASK.md Status handoff requires an assigned Next owner");
+    errors.push(`${label} Status handoff requires an assigned Next owner`);
   }
 
-  const acceptance = section(task, "Acceptance scenarios");
+  const acceptance = taskSection(markdown, "Acceptance scenarios");
   const acceptanceItems = acceptance.match(/^- \[[ xX]\] .+$/gm) ?? [];
   const accepted = acceptanceItems.filter((item) => /^- \[[xX]\]/.test(item)).length;
-  const verification = section(task, "Verification");
+  const verification = taskSection(markdown, "Verification");
   const verificationItems = verification.match(/^- \[[ xX]\] .+$/gm) ?? [];
   const verified = verificationItems.filter((item) => /^- \[[xX]\]/.test(item)).length;
-  if (acceptanceItems.length === 0) errors.push("TASK.md requires at least one acceptance checkbox");
+  if (acceptanceItems.length === 0) errors.push(`${label} requires at least one acceptance checkbox`);
   if (metadata.status === "done" && accepted !== acceptanceItems.length) {
-    errors.push("TASK.md Status done requires every acceptance scenario to be checked");
+    errors.push(`${label} Status done requires every acceptance scenario to be checked`);
   }
   if (metadata.status === "done" && (verificationItems.length === 0 || verified !== verificationItems.length)) {
-    errors.push("TASK.md Status done requires every verification item to be checked");
+    errors.push(`${label} Status done requires every verification item to be checked`);
   }
 
-  const sessionValidation = validateSessionConfiguration({ root: absoluteRoot });
-  errors.push(...sessionValidation.errors);
-  const sessions = buildSessionReport({ root: absoluteRoot });
+  return {
+    ...metadata,
+    acceptance: {
+      completed: accepted,
+      total: acceptanceItems.length,
+      percent: acceptanceItems.length ? Math.round((accepted / acceptanceItems.length) * 100) : null,
+    },
+    verification: { completed: verified, total: verificationItems.length },
+  };
+}
 
-  const gitProgress = {
+function gitProgress(root, base, errors) {
+  const progress = {
     available: false,
     base,
     commits: null,
@@ -130,77 +134,144 @@ export function validateRepository({ root = process.cwd(), base = null } = {}) {
     deletions: null,
     files: [],
   };
+  if (!base) return progress;
 
+  const ancestor = spawnSync("git", ["merge-base", "--is-ancestor", base, "HEAD"], {
+    cwd: root,
+    encoding: "utf8",
+    windowsHide: true,
+  });
+  const changed = git(root, ["diff", "--name-only", base, "--"]);
+  if (ancestor.status !== 0 || changed === null) {
+    errors.push(`Git base is unavailable or not an ancestor: ${base}`);
+    return progress;
+  }
+
+  const trackedFiles = changed ? changed.split(/\r?\n/).filter(Boolean) : [];
+  const untracked = git(root, ["ls-files", "--others", "--exclude-standard"]);
+  const untrackedFiles = untracked ? untracked.split(/\r?\n/).filter(Boolean) : [];
+  const files = [...new Set([...trackedFiles, ...untrackedFiles])].sort();
+  const numstat = git(root, ["diff", "--numstat", base, "--"]) ?? "";
+  let additions = 0;
+  let deletions = 0;
+  for (const line of numstat.split(/\r?\n/).filter(Boolean)) {
+    const [added, deleted] = line.split("\t");
+    if (/^\d+$/.test(added)) additions += Number(added);
+    if (/^\d+$/.test(deleted)) deletions += Number(deleted);
+  }
+  progress.available = true;
+  progress.commits = Number(git(root, ["rev-list", "--count", `${base}..HEAD`]) ?? 0);
+  progress.changedFiles = files.length;
+  progress.additions = additions;
+  progress.deletions = deletions;
+  progress.files = files;
+  return progress;
+}
+
+export function validateRepository({
+  root = process.cwd(),
+  base = null,
+  taskId = null,
+  allTasks = false,
+} = {}) {
+  const absoluteRoot = resolve(root);
+  const errors = [];
+  const warnings = [];
+  for (const path of REQUIRED_FILES) {
+    if (!existsSync(resolve(absoluteRoot, path))) errors.push(`Missing required file: ${path}`);
+  }
+
+  const agentsPath = resolve(absoluteRoot, "AGENTS.md");
+  const agents = existsSync(agentsPath) ? readFileSync(agentsPath, "utf8") : "";
+  if (agents && !agents.includes("<!-- repo-task-sync:start -->")) {
+    errors.push("AGENTS.md does not contain the repo-task-sync entry marker");
+  }
+
+  const progress = gitProgress(absoluteRoot, base, errors);
+  const taskFiles = listTasks(absoluteRoot);
+  if (taskFiles.length === 0) errors.push("No task files found under .ai-team/tasks/");
+  const ids = new Set();
+  for (const task of taskFiles) {
+    if (!task.id) continue;
+    const normalized = task.id.toUpperCase();
+    if (ids.has(normalized)) errors.push(`Task ID is duplicated: ${task.id}`);
+    ids.add(normalized);
+    if (task.kind === "legacy") warnings.push("Legacy .ai-team/TASK.md detected; run vibecollab migrate multi-task --dry-run");
+  }
+  const tasks = taskFiles.map((task) => taskSummary(task, errors));
+
+  const changedTaskPaths = progress.files.filter(isTaskFile);
+  const nonCollaborationFiles = progress.files.filter((path) => !isCollaborationFile(path));
+  if (nonCollaborationFiles.length > 0 && changedTaskPaths.length === 0) {
+    errors.push("Code or product files changed without updating the corresponding .ai-team/tasks/<ID>/TASK.md in the same PR");
+  }
+  if (nonCollaborationFiles.length > 0 && changedTaskPaths.length > 1) {
+    errors.push("A normal code PR must update exactly one Task; split multi-task changes or use a separately reviewed integration PR");
+  }
   if (base) {
-    const range = `${base}..HEAD`;
-    const ancestor = spawnSync("git", ["merge-base", "--is-ancestor", base, "HEAD"], {
-      cwd: absoluteRoot,
-      encoding: "utf8",
-      windowsHide: true,
-    });
-    const changed = git(absoluteRoot, ["diff", "--name-only", base, "--"]);
-    if (ancestor.status !== 0 || changed === null) {
-      errors.push(`Git base is unavailable or not an ancestor: ${base}`);
-    } else {
-      const trackedFiles = changed ? changed.split(/\r?\n/).filter(Boolean) : [];
-      const untracked = git(absoluteRoot, ["ls-files", "--others", "--exclude-standard"]);
-      const untrackedFiles = untracked ? untracked.split(/\r?\n/).filter(Boolean) : [];
-      const files = [...new Set([...trackedFiles, ...untrackedFiles])].sort();
-      const nonCollaborationFiles = files.filter((path) => !isCollaborationFile(path));
-      if (nonCollaborationFiles.length > 0 && !files.includes(".ai-team/TASK.md")) {
-        errors.push("Code or product files changed without updating .ai-team/TASK.md in the same PR");
+    for (const path of changedTaskPaths) {
+      const current = tasks.find((task) => task.path === path);
+      const previousMarkdown = git(absoluteRoot, ["show", `${base}:${path}`]);
+      if (!current || previousMarkdown === null) continue;
+      const previousRevision = Number(taskField(previousMarkdown, "Revision") ?? 0);
+      if (current.revision <= previousRevision) {
+        errors.push(`${path} changed without increasing Revision above ${previousRevision}`);
       }
-
-      const numstat = git(absoluteRoot, ["diff", "--numstat", base, "--"]) ?? "";
-      let additions = 0;
-      let deletions = 0;
-      for (const line of numstat.split(/\r?\n/).filter(Boolean)) {
-        const [added, deleted] = line.split("\t");
-        if (/^\d+$/.test(added)) additions += Number(added);
-        if (/^\d+$/.test(deleted)) deletions += Number(deleted);
-      }
-      gitProgress.available = true;
-      gitProgress.commits = Number(git(absoluteRoot, ["rev-list", "--count", range]) ?? 0);
-      gitProgress.changedFiles = files.length;
-      gitProgress.additions = additions;
-      gitProgress.deletions = deletions;
-      gitProgress.files = files;
     }
   }
 
+  const branch = git(absoluteRoot, ["branch", "--show-current"]);
+  const resolved = resolveTask({
+    root: absoluteRoot,
+    taskId,
+    branch,
+    changedFiles: progress.files,
+    allowSingle: true,
+  });
+  const needsSelectedTask = !allTasks || nonCollaborationFiles.length > 0 || Boolean(taskId);
+  if (!resolved.task && needsSelectedTask) errors.push(resolved.error);
+  const selected = resolved.task
+    ? tasks.find((task) => task.path === resolved.task.path) ?? null
+    : null;
+  if (selected && changedTaskPaths.length === 1 && selected.path !== changedTaskPaths[0]) {
+    errors.push(`Selected task ${selected.id} does not match changed task file ${changedTaskPaths[0]}`);
+  }
+
+  const sessionValidation = validateSessionConfiguration({ root: absoluteRoot });
+  errors.push(...sessionValidation.errors);
+  const sessions = buildSessionReport({ root: absoluteRoot });
+
   return {
     valid: errors.length === 0,
-    task: {
-      ...metadata,
-      acceptance: {
-        completed: accepted,
-        total: acceptanceItems.length,
-        percent: acceptanceItems.length ? Math.round((accepted / acceptanceItems.length) * 100) : null,
-      },
-      verification: {
-        completed: verified,
-        total: verificationItems.length,
-      },
-    },
-    git: gitProgress,
+    task: selected,
+    tasks,
+    git: progress,
     sessions,
+    warnings,
     errors,
   };
 }
 
 function printHuman(result) {
-  const progress = result.task.acceptance;
+  const taskLines = result.task
+    ? [
+        `Task: ${result.task.id} — ${result.task.title}`,
+        `State: ${result.task.status}; owner: ${result.task.owner}; next: ${result.task.nextOwner}`,
+        `Functional progress: ${result.task.acceptance.completed}/${result.task.acceptance.total}${
+          result.task.acceptance.percent === null ? "" : ` (${result.task.acceptance.percent}%)`
+        }`,
+      ]
+    : [`Tasks: ${result.tasks.length}; no single task selected`];
   process.stdout.write(
     [
-      `Task: ${result.task.id ?? "unavailable"} — ${result.task.title ?? "unavailable"}`,
-      `State: ${result.task.status ?? "unavailable"}; owner: ${result.task.owner ?? "unavailable"}; next: ${result.task.nextOwner ?? "unavailable"}`,
-      `Functional progress: ${progress.completed}/${progress.total}${progress.percent === null ? "" : ` (${progress.percent}%)`}`,
+      ...taskLines,
       result.git.available
         ? `Code progress from ${result.git.base}: ${result.git.commits} commits, ${result.git.changedFiles} files, +${result.git.additions}/-${result.git.deletions}`
         : "Code progress: provide --base <target-branch-or-sha> to compare Git changes",
       result.sessions.enabled
         ? `Private sessions: ${result.sessions.totals.sessions}; closed: ${result.sessions.totals.closed}; token coverage: ${result.sessions.totals.tokenCoverage.reported}/${result.sessions.totals.tokenCoverage.total}`
         : "Private sessions: disabled",
+      ...result.warnings.map((warning) => `Warning: ${warning}`),
       result.valid ? "Result: valid" : `Result: blocked\n- ${result.errors.join("\n- ")}`,
     ].join("\n") + "\n",
   );

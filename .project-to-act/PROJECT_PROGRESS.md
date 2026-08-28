@@ -6,6 +6,8 @@
 
 | 任务                    | 状态     | 负责人 | 完成条件                                              | 证据 ID | 最后更新   |
 | ----------------------- | -------- | ------ | ----------------------------------------------------- | ------- | ---------- |
+| VC-010 可选 Monitor MVP | 已规划 | Codex | 脱敏事件、离线补发、GitHub 投影、团队看板和私有部署通过 | 待生成 | 2026-08-28 |
+| VC-009 多任务协作协议 | 本地完成 | Codex | 任务目录、CLI、CI/Session 归属、显式迁移和三人旅程通过 | E-010 | 2026-08-28 |
 | VC-008 一键安装与无感记录 | 已发布 | Codex  | CLI 分发、Private setup、自动身份、doctor/report、Token 降级和 main CI 通过 | E-009   | 2026-08-10 |
 | VC-007 私有 Session 账本 | 本地完成 | Codex  | 默认关闭、Private 门禁、Hook 采集、独立 Markdown 和统计通过 | E-007   | 2026-08-10 |
 | VC-006 Actions v7 更新  | 已完成   | Codex  | 根工作流与模板升级、公共 main CI 无弃用版本          | E-006   | 2026-08-05 |
@@ -23,14 +25,18 @@
 
 ## 下一步
 
-1. 在一个真实 Private 目标仓库运行一条 setup 命令并信任 Hook 后完成首轮会话记录。
-2. 在 GitHub 中保护 `main` 并把 `verify` 设为 required check。
-3. 用 5–10 个真实的两人同 Task PR 接力试运行并冻结 Repo Task Sync Protocol v1。
-4. 由仓库所有者选择公开许可后添加 LICENSE。
+1. 完成 VC-009 多任务协议、旧仓库迁移和并行 clone 验收。
+2. 在 VC-009 契约稳定后实施 VC-010 Monitor MVP。
+3. 在一个真实 Private 目标仓库验证多 Task、Hook、GitHub 和 Monitor 全链路。
+4. 在 GitHub 中保护 `main` 并把 `verify` 设为 required check。
+5. 由仓库所有者选择公开许可后添加 LICENSE。
 
 ## 进度历史
 
 按时间倒序追加：日期、完成事项、证据 ID、遗留问题、下一步和确认来源。不要覆盖旧记录。
+
+- 2026-08-28：VC-009 本地实现完成；目标仓库改为每个 Task 独立目录，新增 task create/use/list、分支/变更解析、Revision 门禁、旧 TASK 显式迁移、受控升级和 Session Git 锚点。13 项测试与分发检查通过，双人不同 Task 并行合并无共享文件冲突；证据 E-010。下一步进入 VC-010 Monitor MVP。
+- 2026-08-28：启动 VC-009 与 VC-010；归档 Monitor 开发方案并完成单 TASK 审计，用户确认多人并行应维护不同 Task，同时批准多任务协议与可选 Monitor 连续开发。当前先实施 VC-009，VC-010 依赖其稳定 taskId 和任务投影。
 
 - 2026-08-10：按仓库所有者明确要求关闭 Draft PR #1，将 v0.5.0 直接快进推送到公共 main；修复测试错误调用 Windows Hook 命令的 Linux CI 问题后，main Verify run 31364978558 成功；证据 E-009。
 - 2026-08-10：完成 VC-008 本地实现；新增可通过 GitHub npx 使用的零依赖 `vibecollab` bin，提供 setup/doctor/report；无需环境变量或手动 Session 生命周期；Token 缺失时仅解析 transcript 数值事件并验证秘密文本不落盘。10 项测试、分发包安装、Skill、治理与 diff 门禁通过；证据 E-008。

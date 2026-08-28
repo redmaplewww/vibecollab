@@ -24,6 +24,7 @@
 | A-008   | 公共 GitHub 仓库可直接使用     | 通过 | 匿名 HTTP、Public visibility、远程 main 与 Actions | E-005   |
 | A-009   | Private Session 可安全共享       | 通过 | 默认关闭、双 Actor Hook、独立 MD、公开策略反例与统计 | E-007   |
 | A-010   | 一条命令启用并无感记录           | 通过 | setup/doctor/report、分发 bin、自动身份、Token 降级反例 | E-008   |
+| A-011   | 多人可维护不同 Task 并行开发     | 通过 | 双并行 clone、任务目录、Revision/CI/Session 归属、迁移和升级测试 | E-010 |
 
 ## 证据索引
 
@@ -38,6 +39,7 @@
 | E-007   | 2026-08-10 | `npm.cmd run verify`；Skill 校验；Windows Hook 与公开策略反例                       | 0        | 核心文件 SHA-256 见证据 JSON                    | 8 测试、分发、双 Session、子目录 Hook、Token 覆盖和失败关闭通过      | `.project-to-act/tasks/VC-007/evidence/E-VC-007-001.json` | Session 协议、Hook、安装器或 Skill 变化前 |
 | E-008   | 2026-08-10 | `npm.cmd run verify`；tarball/bin 安装；Skill/治理校验；Token 秘密文本反例           | 0        | 核心文件 SHA-256 见证据 JSON                    | 10 测试、分发、setup/doctor/report、数值 Token 降级和失败关闭通过    | `.project-to-act/tasks/VC-008/evidence/E-VC-008-001.json` | CLI、Session 解析器、安装器或 Skill 变化前 |
 | E-009   | 2026-08-10 | 直接快进推送 main；GitHub Actions Verify run 31364978558                            | 0        | 发布代码 `995d586`                              | Linux Runner 10 项测试与分发检查通过；公共 main 已包含 v0.5.0       | `.project-to-act/tasks/VC-008/evidence/E-VC-008-002.json` | main、工作流、测试或分发入口变化前 |
+| E-010   | 2026-08-28 | `npm.cmd run verify`；双人不同 Task 并行 clone；迁移、升级、Session 和 Revision 反例 | 0 | 核心文件 SHA-256 见证据 JSON | 13 项测试和分发检查通过；不同 Task 无共享 TASK 冲突，同 Task 接力保持有效 | `.project-to-act/tasks/VC-009/evidence/E-VC-009-001.json` | 多任务目录、CLI、校验、Session 或迁移变化前 |
 
 ## Gate 记录
 
@@ -55,6 +57,7 @@
 
 按时间倒序追加：日期、检查范围、证据 ID、结果、遗留问题和结论。失败、跳过与过期证据也必须如实记录。
 
+- 2026-08-28：VC-009 本地验收通过；13 项自动化测试覆盖新安装、多任务 CLI、Revision、代码/Task 同 PR、Alice/Bob 不同 Task 并行合并、同 Task 接力、旧版迁移、受控升级、Session 锚点和隐私反例；分发检查通过，证据 E-010。真实 GitHub protected branch 试运行仍待发布前执行。
 - 2026-08-10：v0.5.0 直接发布完成；Draft PR #1 按所有者要求关闭，初次 PR CI 暴露 Linux 错误执行 Windows Hook 测试命令，定向修复后直接快进推送 main，GitHub Actions run 31364978558 成功；证据 E-009。
 - 2026-08-10：VC-008 本地验收通过；打包后的 CLI 可独立安装并报告 0.5.0，Private 临时 Git 仓库一条 setup 命令后 doctor/report 有效，Git 身份自动识别；Hook 无直接 Token 时只读取 transcript 的累计数值，秘密消息不进入 Markdown，未知格式保持 unavailable；证据 E-008。
 - 2026-08-10：VC-007 本地验收通过；默认安装不启用采集，Private 安装的 Windows Hook 可从子目录写入两名 Actor 的独立 Markdown，用户原文、AI 最终响应、墙钟、Git 和 Token 覆盖统计符合协议，Public 策略被拒绝；证据 E-007。真实 Codex Token 字段仍依赖官方事件可用性。

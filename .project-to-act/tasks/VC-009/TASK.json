@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-009",
+  "title": "Multi-task collaboration protocol",
+  "owner": "codex",
+  "goal": "将目标仓库从单一 .ai-team/TASK.md 升级为任务目录协议，使不同人员能够在不同 Task、分支和 PR 上并行开发，同时保留同一 Task 的单写入者顺序接力。",
+  "reason": "用户确认多人并行开发时应维护不同 Task；当前 v0.5.0 的共享 TASK.md 会造成任务事实覆盖、PR 冲突和 Session 错误归属，并阻塞团队 Monitor 的准确投影。",
+  "currentBehavior": "安装器、校验器、Session、Skill、README 和 PR 模板都固定读取 .ai-team/TASK.md，只支持一个当前任务。",
+  "expectedBehavior": "新仓库使用 .ai-team/tasks/<ID>-<slug>/TASK.md；CLI 可创建、选择、列出和迁移任务；校验器和 Session 能稳定解析当前 Task；不同 Task 可并行，同一 Task 仍只有一个写入负责人。",
+  "scope": {
+    "allowed": [
+      "scripts/cli.mjs",
+      "scripts/install.mjs",
+      "scripts/check.mjs",
+      "scripts/session.mjs",
+      "scripts/task-store.mjs",
+      "scripts/check-distribution.mjs",
+      "templates/repository/",
+      "templates/private-session/",
+      "skills/repo-task-sync/",
+      "tests/",
+      "README.md",
+      "AGENTS.md",
+      "docs/design/MULTI_TASK_COLLABORATION_AUDIT.md",
+      "docs/development-logs/2026-08-28-vibecollab-monitor-development-plan.md",
+      ".project-to-act/"
+    ],
+    "nonGoals": [
+      "本任务不实现 Monitor 服务端和 Web 看板",
+      "不自动合并、部署、强推或修改生产环境",
+      "不允许一个普通 PR 同时承载多个业务 Task",
+      "不采集按键、思维链、系统提示或源码正文"
+    ]
+  },
+  "invariants": [
+    "不同 Task 可以并行，但每个活跃 Task 任一时刻只有一个 Owner",
+    "代码和对应任务文件必须在同一个 PR 中更新",
+    "无法唯一解析 Task 时失败关闭，不猜测默认任务",
+    "任务事实、Session 和 Git 证据必须通过稳定 taskId 关联",
+    "安装和迁移不得静默覆盖用户已有文件",
+    "VibeCollab Core 保持 Node.js 20+、Git 和内置模块即可运行"
+  ],
+  "authoritativeContext": [
+    "AGENTS.md",
+    "docs/design/MULTI_TASK_COLLABORATION_AUDIT.md",
+    "templates/repository/.ai-team/tasks/TASK-000-define-first-task/TASK.md",
+    "scripts/check.mjs",
+    "scripts/session.mjs",
+    "skills/repo-task-sync/SKILL.md"
+  ],
+  "dependencies": [],
+  "contracts": {
+    "read": [
+      "repo-task-sync-v0.5"
+    ],
+    "write": [
+      "multi-task-protocol-v1"
+    ]
+  },
+  "acceptance": [
+    "新安装只生成任务目录中的示例 Task，不生成共享 .ai-team/TASK.md",
+    "task create、task use 和 task list 能管理多个独立 Task",
+    "doctor、report 和 check 支持显式 taskId，并能从 task/<ID>-<slug> 分支安全推断",
+    "代码变更但没有更新对应 Task 文件时 CI 失败",
+    "两个 clone 可以从同一 main 创建不同 Task 并行提交，且不修改同一个任务文件",
+    "同一 Task 的 Owner、handoff 和 done 门禁保持有效",
+    "Private Session 精确记录 taskId、taskRevision、branch、baseSha 和 headSha",
+    "旧 .ai-team/TASK.md 可通过显式 dry-run 后迁移，内容不丢失且不会覆盖已有任务",
+    "README、AGENTS、Skill、PR 模板和工作流统一使用多任务协议"
+  ],
+  "verification": [
+    "npm.cmd run verify",
+    "node .project-to-act/bin/pta.mjs validate --ci",
+    "Alice/Bob 双并行 Task clone 旅程",
+    "同一 Task 错误 Owner 或无法解析 Task 的失败关闭反例",
+    "旧单 Task 仓库迁移 dry-run 与执行测试"
+  ],
+  "baseSha": "9673c576ab7e61f1f43af62565988532d79e0fa7",
+  "gitBaseline": {
+    "clean": false,
+    "statusHash": "0933b130d260f82993853e7b62552af5ff0dccda8cd3a8192496cf60092999d2"
+  },
+  "createdAt": "2026-08-28T12:56:06.912Z"
+}

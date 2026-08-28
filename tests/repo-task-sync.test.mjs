@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import test from "node:test";
@@ -8,6 +8,7 @@ import test from "node:test";
 import { installRepositoryFiles } from "../scripts/install.mjs";
 import { validateRepository } from "../scripts/check.mjs";
 import { extractTokenUsageFromTranscript } from "../scripts/session.mjs";
+import { createTask, migrateLegacyTask } from "../scripts/task-store.mjs";
 
 function git(root, ...args) {
   return execFileSync("git", args, { cwd: root, encoding: "utf8", windowsHide: true }).trim();
@@ -18,8 +19,32 @@ function configureGit(root, name) {
   git(root, "config", "user.email", `${name.toLowerCase()}@example.invalid`);
 }
 
-function replaceTask(root, replacements) {
-  const path = resolve(root, ".ai-team/TASK.md");
+function taskPath(root, id = null) {
+  const tasksRoot = resolve(root, ".ai-team/tasks");
+  const paths = existsSync(tasksRoot)
+    ? readdirSync(tasksRoot, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => resolve(tasksRoot, entry.name, "TASK.md"))
+        .filter(existsSync)
+    : [];
+  if (!id) {
+    assert.equal(paths.length, 1, `Expected one task, found ${paths.length}`);
+    return paths[0];
+  }
+  const normalized = id.toUpperCase();
+  const path = paths.find((candidate) =>
+    readFileSync(candidate, "utf8").includes(`- ID: \`${normalized}\``),
+  );
+  assert.ok(path, `Task not found: ${normalized}`);
+  return path;
+}
+
+function relativeTaskPath(root, id = null) {
+  return taskPath(root, id).slice(resolve(root).length + 1).replaceAll("\\", "/");
+}
+
+function replaceTask(root, replacements, id = null) {
+  const path = taskPath(root, id);
   let task = readFileSync(path, "utf8");
   for (const [from, to] of replacements) task = task.replace(from, to);
   writeFileSync(path, task, "utf8");
@@ -30,9 +55,10 @@ test("installer creates a valid file-only collaboration package", () => {
   try {
     const result = installRepositoryFiles({ target: root });
     assert.equal(result.valid, true);
-    assert.ok(result.created.includes(".ai-team/TASK.md"));
+    assert.ok(result.created.includes(".ai-team/tasks/TASK-000-define-first-task/TASK.md"));
     assert.ok(result.created.includes(".ai-team/check.mjs"));
     assert.ok(result.created.includes(".ai-team/session.mjs"));
+    assert.ok(result.created.includes(".ai-team/task-store.mjs"));
     assert.equal(existsSync(resolve(root, ".ai-team/session-policy.json")), false);
     assert.equal(existsSync(resolve(root, ".codex/hooks.json")), false);
     assert.equal(validateRepository({ root }).valid, true);
@@ -52,10 +78,36 @@ test("installer preserves an existing AGENTS.md and refuses conflicting project 
     assert.match(agents, /Keep this text/);
     assert.match(agents, /repo-task-sync:start/);
 
-    writeFileSync(resolve(root, ".ai-team/TASK.md"), "local facts\n", "utf8");
+    writeFileSync(resolve(root, ".ai-team/PROJECT.md"), "local facts\n", "utf8");
     assert.throws(
       () => installRepositoryFiles({ target: root }),
-      /existing files would be overwritten:[\s\S]*\.ai-team\/TASK\.md/,
+      /existing files would be overwritten:[\s\S]*\.ai-team\/PROJECT\.md/,
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("explicit upgrade refreshes managed runtime without overwriting project or tasks", () => {
+  const root = mkdtempSync(resolve(tmpdir(), "vibecollab-upgrade-"));
+  try {
+    installRepositoryFiles({ target: root });
+    const projectPath = resolve(root, ".ai-team/PROJECT.md");
+    const task = taskPath(root);
+    const projectContent = `${readFileSync(projectPath, "utf8")}\nTeam-specific project fact.\n`;
+    const taskContent = readFileSync(task, "utf8").replace("Nothing completed yet", "Preserve this task fact");
+    writeFileSync(projectPath, projectContent, "utf8");
+    writeFileSync(task, taskContent, "utf8");
+    writeFileSync(resolve(root, ".ai-team/check.mjs"), "// old managed runtime\n", "utf8");
+
+    assert.throws(() => installRepositoryFiles({ target: root }), /\.ai-team\/check\.mjs/);
+    const upgraded = installRepositoryFiles({ target: root, upgrade: true });
+    assert.ok(upgraded.updated.includes(".ai-team/check.mjs"));
+    assert.equal(readFileSync(projectPath, "utf8"), projectContent);
+    assert.equal(readFileSync(task, "utf8"), taskContent);
+    assert.equal(
+      readFileSync(resolve(root, ".ai-team/check.mjs"), "utf8"),
+      readFileSync(resolve("scripts/check.mjs"), "utf8"),
     );
   } finally {
     rmSync(root, { recursive: true, force: true });
@@ -78,16 +130,17 @@ test("validator blocks code-only PRs and reports functional plus Git progress", 
     git(root, "commit", "-m", "feat: add agent");
     const blocked = validateRepository({ root, base });
     assert.equal(blocked.valid, false);
-    assert.match(blocked.errors.join("\n"), /without updating \.ai-team\/TASK\.md/);
+    assert.match(blocked.errors.join("\n"), /without updating the corresponding \.ai-team\/tasks/);
 
     replaceTask(root, [
       ["- ID: `TASK-000`", "- ID: `AGENT-001`"],
       ["- Title: `Define the first shared task`", "- Title: `Build the agent foundation`"],
       ["- Status: `planning`", "- Status: `active`"],
+      ["- Revision: `0`", "- Revision: `1`"],
       ["- Owner: `unassigned`", "- Owner: `alice`"],
       ["- [ ] Define at least one Given/When/Then or equivalent verifiable scenario.", "- [x] Given a request, when the agent runs, then it returns a typed result."],
     ]);
-    git(root, "add", ".ai-team/TASK.md");
+    git(root, "add", relativeTaskPath(root));
     git(root, "commit", "-m", "docs: sync task progress");
 
     const valid = validateRepository({ root, base });
@@ -115,11 +168,14 @@ test("validator includes uncommitted and untracked local work", () => {
     assert.equal(blocked.valid, false);
     assert.deepEqual(blocked.git.files, ["agent.js"]);
 
-    replaceTask(root, [["- Nothing completed yet.", "- Began the agent implementation."]]);
+    replaceTask(root, [
+      ["- Revision: `0`", "- Revision: `1`"],
+      ["- Nothing completed yet.", "- Began the agent implementation."],
+    ]);
     const valid = validateRepository({ root, base });
     assert.equal(valid.valid, true);
     assert.ok(valid.git.files.includes("agent.js"));
-    assert.ok(valid.git.files.includes(".ai-team/TASK.md"));
+    assert.ok(valid.git.files.includes(relativeTaskPath(root)));
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -158,6 +214,7 @@ test("Alice PR merge gives Bob the same code and task context in another clone",
     writeFileSync(resolve(alice, "src/agent.js"), "export function run() { return 'foundation'; }\n", "utf8");
     replaceTask(alice, [
       ["- Status: `active`", "- Status: `handoff`"],
+      ["- Revision: `0`", "- Revision: `1`"],
       ["- Next owner: `unassigned`", "- Next owner: `bob`"],
       ["- [ ] Define at least one Given/When/Then or equivalent verifiable scenario.", "- [x] Given a request, when the foundation runs, then it returns a stable result."],
       ["- Record implementation decisions that the next developer must preserve.", "- Export one run function; Bob must preserve this public contract."],
@@ -183,9 +240,105 @@ test("Alice PR merge gives Bob the same code and task context in another clone",
     assert.equal(result.task.owner, "alice");
     assert.equal(result.task.nextOwner, "bob");
     assert.match(readFileSync(resolve(bob, "src/agent.js"), "utf8"), /foundation/);
-    assert.match(readFileSync(resolve(bob, ".ai-team/TASK.md"), "utf8"), /preserve this public contract/);
+    assert.match(readFileSync(taskPath(bob, "AGENT-001"), "utf8"), /preserve this public contract/);
   } finally {
     rmSync(sandbox, { recursive: true, force: true });
+  }
+});
+
+test("Alice and Bob develop different tasks in parallel without sharing one task file", () => {
+  const sandbox = mkdtempSync(resolve(tmpdir(), "vibecollab-parallel-"));
+  const remote = resolve(sandbox, "remote.git");
+  const maintainer = resolve(sandbox, "maintainer");
+  const alice = resolve(sandbox, "alice");
+  const bob = resolve(sandbox, "bob");
+  try {
+    git(sandbox, "init", "--bare", remote);
+    git(sandbox, "clone", remote, maintainer);
+    configureGit(maintainer, "Maintainer");
+    installRepositoryFiles({ target: maintainer });
+    git(maintainer, "add", ".");
+    git(maintainer, "commit", "-m", "chore: install collaboration files");
+    git(maintainer, "branch", "-M", "main");
+    git(maintainer, "push", "-u", "origin", "main");
+    git(remote, "symbolic-ref", "HEAD", "refs/heads/main");
+
+    git(sandbox, "clone", remote, alice);
+    git(sandbox, "clone", remote, bob);
+    configureGit(alice, "Alice");
+    configureGit(bob, "Bob");
+    const base = git(alice, "rev-parse", "HEAD");
+
+    git(alice, "switch", "-c", "task/AGENT-101-memory");
+    createTask({ root: alice, id: "AGENT-101", title: "Agent memory", owner: "alice" });
+    replaceTask(
+      alice,
+      [
+        ["- Status: `planning`", "- Status: `active`"],
+        ["- [ ] Define at least one Given/When/Then or equivalent verifiable scenario.", "- [x] Given memory input, when it is stored, then it can be read later."],
+        ["- Nothing completed yet.", "- Memory storage implemented."],
+      ],
+      "AGENT-101",
+    );
+    mkdirSync(resolve(alice, "src"));
+    writeFileSync(resolve(alice, "src/memory.js"), "export const memory = new Map();\n", "utf8");
+    const aliceCheck = validateRepository({ root: alice, base });
+    assert.equal(aliceCheck.valid, true, aliceCheck.errors.join("\n"));
+    assert.equal(aliceCheck.task.id, "AGENT-101");
+    git(alice, "add", ".");
+    git(alice, "commit", "-m", "feat: add agent memory");
+    git(alice, "push", "-u", "origin", "task/AGENT-101-memory");
+
+    git(bob, "switch", "-c", "task/AGENT-102-tools");
+    createTask({ root: bob, id: "AGENT-102", title: "Tool routing", owner: "bob" });
+    replaceTask(
+      bob,
+      [
+        ["- Status: `planning`", "- Status: `active`"],
+        ["- [ ] Define at least one Given/When/Then or equivalent verifiable scenario.", "- [x] Given a tool request, when it is routed, then the named tool is selected."],
+        ["- Nothing completed yet.", "- Tool routing implemented."],
+      ],
+      "AGENT-102",
+    );
+    mkdirSync(resolve(bob, "src"));
+    writeFileSync(resolve(bob, "src/tools.js"), "export const route = (name) => name;\n", "utf8");
+    const bobCheck = validateRepository({ root: bob, base });
+    assert.equal(bobCheck.valid, true, bobCheck.errors.join("\n"));
+    assert.equal(bobCheck.task.id, "AGENT-102");
+    git(bob, "add", ".");
+    git(bob, "commit", "-m", "feat: add tool routing");
+    git(bob, "push", "-u", "origin", "task/AGENT-102-tools");
+
+    git(maintainer, "fetch", "origin");
+    git(maintainer, "merge", "--no-ff", "origin/task/AGENT-101-memory", "-m", "Merge memory task");
+    git(maintainer, "merge", "--no-ff", "origin/task/AGENT-102-tools", "-m", "Merge tools task");
+    const merged = validateRepository({ root: maintainer, allTasks: true });
+    assert.equal(merged.valid, true, merged.errors.join("\n"));
+    assert.ok(merged.tasks.some((task) => task.id === "AGENT-101"));
+    assert.ok(merged.tasks.some((task) => task.id === "AGENT-102"));
+    assert.notEqual(relativeTaskPath(maintainer, "AGENT-101"), relativeTaskPath(maintainer, "AGENT-102"));
+  } finally {
+    rmSync(sandbox, { recursive: true, force: true });
+  }
+});
+
+test("legacy single task migration previews and preserves content", () => {
+  const root = mkdtempSync(resolve(tmpdir(), "vibecollab-migrate-"));
+  try {
+    installRepositoryFiles({ target: root });
+    const source = taskPath(root);
+    const content = readFileSync(source, "utf8").replace("TASK-000", "LEGACY-001");
+    rmSync(resolve(root, ".ai-team/tasks"), { recursive: true, force: true });
+    writeFileSync(resolve(root, ".ai-team/TASK.md"), content, "utf8");
+
+    const preview = migrateLegacyTask({ root, dryRun: true });
+    assert.equal(preview.dryRun, true);
+    assert.equal(existsSync(resolve(root, ".ai-team/TASK.md")), true);
+    const migrated = migrateLegacyTask({ root });
+    assert.equal(existsSync(resolve(root, ".ai-team/TASK.md")), false);
+    assert.equal(readFileSync(resolve(root, migrated.to), "utf8"), content);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
   }
 });
 
@@ -226,6 +379,13 @@ test("one setup command installs, diagnoses, and reports a private Git repositor
     assert.equal(setup.actor, "Alice");
     assert.equal(setup.privateSessions, true);
     assert.equal(existsSync(resolve(root, ".codex/hooks.json")), true);
+
+    const created = run("task", "create", "AGENT-CLI-001", "--title", "CLI task");
+    assert.equal(created.task.id, "AGENT-CLI-001");
+    const selected = run("task", "use", "AGENT-CLI-001");
+    assert.equal(selected.task.id, "AGENT-CLI-001");
+    const listed = run("task", "list");
+    assert.ok(listed.tasks.some((task) => task.id === "AGENT-CLI-001"));
 
     const doctor = run("doctor");
     assert.equal(doctor.ok, true);

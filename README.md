@@ -1,99 +1,170 @@
 # VibeCollab
 
-VibeCollab 是一套纯文件、Git 原生的 AI 团队协作协议。它把项目目标、当前任务、AI 工作记录和验收证据放进项目仓库，通过 PR/Merge 让不同成员和不同 AI 获得同一份上下文。
+VibeCollab 是一套文件化、Git 原生、工具无关的 AI 团队协作协议。项目背景、独立任务、AI 工作记录和验收证据都随代码进入 Git；不同成员和不同 AI 只读取仓库，就能恢复同一份功能事实。
 
-不需要服务器、数据库、账号、常驻进程，也不强制使用某一种 AI。
+核心规则：
 
-## 30 秒安装
+> 不同 Task 可以并行；同一个 Task 同一时刻只有一个写入负责人；代码和对应 Task 文件在同一个 PR 中合并。
 
-要求 Node.js 20+、Git，并确认目标仓库是 Private。进入目标仓库后运行：
+VibeCollab Core 不需要服务器、数据库、账号或常驻进程，也不强制使用 Codex。可选的 VibeCollab Monitor 后续用于汇总团队任务、GitHub 和脱敏工作事件，不取代仓库事实源。
+
+## 安装
+
+要求 Node.js 20+ 和 Git。在目标仓库运行：
+
+```powershell
+npx --yes github:redmaplewww/vibecollab setup
+```
+
+私有团队仓库如需记录 Codex Session、原始用户提交、AI 最终响应、耗时、Git 和可用 Token：
 
 ```powershell
 npx --yes github:redmaplewww/vibecollab setup --private
 ```
 
-首次在 Codex 中打开项目时，审查并信任项目 Hook 一次。以后正常使用 Codex 即可：不需要手动 `start`、`stop`，也不需要配置环境变量。成员身份自动读取当前仓库的：
+Private 模式首次在 Codex 打开项目时需要信任项目 Hook。成员身份默认读取：
 
 ```powershell
 git config user.name
 ```
 
-安装后把生成文件通过普通 PR 合入主分支，其他成员 `git pull` 后即可共享同一套规则与进度。
+安装后通过普通 PR 合入这些协议文件，其他成员 `git pull` 后即可共享。
 
-> `--private` 会保存原始用户提交和 AI 最终响应，只能用于团队私有仓库。公共仓库请去掉 `--private`，此时不会安装会话采集 Hook。
+## 多人并行开发
 
-## 日常怎么用
+每个可独立验收的工作使用一个 Task：
 
-成员只做三件事：
+```powershell
+vibecollab task create AGENT-021 --title "Agent memory" --owner alice
+vibecollab task create AGENT-022 --title "Tool routing" --owner bob
+vibecollab task list
+```
 
-1. 开工前拉取已合并的最新主分支。
-2. 让 AI 读取 `AGENTS.md`、`.ai-team/PROJECT.md` 和 `.ai-team/TASK.md`，只继续 `Next step`。
-3. 在同一个 PR 中提交代码与更新后的 `.ai-team/TASK.md`。
+生成：
 
-推荐给任意 AI 的指令：
+```text
+.ai-team/tasks/
+├─ AGENT-021-agent-memory/TASK.md
+└─ AGENT-022-tool-routing/TASK.md
+```
 
-> 读取 `AGENTS.md`、`.ai-team/PROJECT.md` 和 `.ai-team/TASK.md`，先复述目标、验收、不变量、已完成、待办和下一步；只实现当前任务范围；完成后更新 TASK.md 并报告真实验证结果。
+推荐分支：
 
-同一任务同一时刻保持一个写入者。A 完成一个安全检查点并合并后，B 拉取主分支继续；如果未完成代码不能进入主分支，两人顺序使用同一个 Draft PR 分支。
+```text
+task/AGENT-021-agent-memory
+task/AGENT-022-tool-routing
+```
 
-## 自动记录什么
+分支包含稳定 Task ID 时，CLI、CI 和 Hook 可以自动解析。也可以显式选择：
 
-Private 模式下，仓库内的 Codex Hook 自动生成：
+```powershell
+vibecollab task use AGENT-021
+vibecollab doctor --task AGENT-021
+vibecollab report --task AGENT-021 --base origin/main
+```
+
+`task use` 只写入被忽略的 `.ai-team/.runtime/`，不会创建共享“当前任务”文件。
+
+### 给任意 AI 的指令
+
+> 读取 `AGENTS.md`、`.ai-team/PROJECT.md`、`.ai-team/SKILL.md` 和 Task `<ID>`；先复述目标、验收、不变量、决策、已完成、待办和下一步；只修改该 Task 范围；完成后更新同一个 Task 文件并报告真实验证结果。
+
+### 同一个 Task 换人
+
+A 完成安全检查点后：
+
+1. 增加 Task `Revision`。
+2. 将状态改为 `handoff`。
+3. 设置 `Next owner`、完成内容、待办和下一步。
+4. 提交代码和同一个 Task 文件。
+5. PR 合并后 B 拉取并接手。
+
+不要因为换了负责人就创建第二个 Task。只有验收目标不同才拆成不同 Task。
+
+## CI 与进度检查
+
+当前任务：
+
+```powershell
+node .ai-team/check.mjs --task AGENT-021 --base origin/main
+```
+
+全部任务结构：
+
+```powershell
+node .ai-team/check.mjs --all
+```
+
+统一 CLI：
+
+```powershell
+vibecollab doctor
+vibecollab report --all
+```
+
+校验器会阻止：
+
+- 代码变化但没有更新对应 Task；
+- 普通代码 PR 同时修改多个 Task；
+- Task 元数据、状态、验收或交接字段无效；
+- `done` 但仍有未完成验收或验证项；
+- 显式 Task、分支 Task 和变更 Task 不一致。
+
+## Private Session 记录
+
+Private 模式生成：
 
 ```text
 .ai-team/sessions/YYYY-MM/<session-id>.md
 ```
 
-每个 Session 独立一个文件，避免多人追加同一个日志产生冲突。内容包括：
+每个 Session 独立一个文件，并绑定：
 
-- 原始用户提交；
-- AI 最终响应，作为工作内容摘要；
+- Task ID、Revision 和文件路径；
+- 分支、Base SHA、Head SHA；
+- Actor、Executor 和模型；
+- 原始用户提交和 AI 最终响应；
 - Session 墙钟耗时；
 - Git 变更文件和增删行；
 - Token 数值、来源、覆盖状态和解析器版本。
 
-Token 优先使用 Hook 事件直接提供的字段。Hook 未提供时，只从它给出的 `transcript_path` 中提取 Codex `token_count.total_token_usage` 数值；不会复制 transcript 的消息、思维链或工具输出。该 transcript 格式不是官方稳定接口，所以解析失败时明确显示 `unavailable`，不会估算。需要长期稳定的精确计量时，应接入 Codex OpenTelemetry `turn.token_usage`。参见 [Codex Hooks](https://learn.chatgpt.com/docs/hooks.md) 与 [Observability and telemetry](https://learn.chatgpt.com/docs/config-file/config-advanced#observability-and-telemetry)。
+Token 优先使用 Hook 字段；缺失时只允许版本化解析器从 Hook 提供的 `transcript_path` 读取数字型累计用量。格式不支持时显示 `unavailable`，不会估算或复制 transcript 消息。
 
-系统不会采集系统/开发者提示、隐藏思维链、原始工具输出、源码副本或逐键键盘行为。Session 文件是最低优先级历史证据，不能覆盖 PROJECT、TASK、代码、测试或当前用户请求。
+系统不采集系统/开发者提示、隐藏思维链、原始工具输出、源码副本或逐键键盘行为。Session 是最低优先级证据，不能覆盖 PROJECT、Task、代码、测试或当前请求。
 
-## 看进度
+## 从 v0.5 单 Task 迁移
 
-统一诊断：
-
-```powershell
-npx --yes github:redmaplewww/vibecollab doctor
-```
-
-统一报表：
+先预览：
 
 ```powershell
-npx --yes github:redmaplewww/vibecollab report --base origin/main
+npx --yes github:redmaplewww/vibecollab migrate multi-task --dry-run
 ```
 
-不访问网络的仓库内命令：
+确认目标路径后执行：
 
 ```powershell
-node .ai-team/check.mjs --base origin/main
-node .ai-team/session.mjs report
+npx --yes github:redmaplewww/vibecollab migrate multi-task
 ```
 
-报表同时展示：
+迁移只移动旧 `.ai-team/TASK.md`，目标已存在时失败，不会覆盖任务内容。迁移后显式升级 VibeCollab 自己管理的运行文件：
 
-- 功能进度：`TASK.md` 验收场景完成数；
-- 代码进度：相对主分支的提交、文件和增删行；
-- 协作进度：Owner、Next owner、Next step；
-- AI 工作记录：成员 Session 数、墙钟耗时和 Token 覆盖。
+```powershell
+npx --yes github:redmaplewww/vibecollab setup --private --upgrade
+```
 
-这些指标用于协调、审查和容量规划，不应作为个人绩效分数。
+`--upgrade` 只更新 VibeCollab 管理的 Skill、脚本、Hook、PR 模板、工作流和 AGENTS 标记区块；不会覆盖 PROJECT 或任何 Task。将迁移与升级结果放入同一个评审 PR。
 
 ## 安装内容
 
 ```text
 AGENTS.md
 .ai-team/
+├─ .gitignore
 ├─ PROJECT.md
-├─ TASK.md
+├─ tasks/
+│  └─ TASK-000-define-first-task/TASK.md
 ├─ SKILL.md
+├─ task-store.mjs
 ├─ check.mjs
 ├─ session.mjs
 ├─ session-policy.json        # 仅 --private
@@ -104,9 +175,7 @@ AGENTS.md
 └─ workflows/repo-task-sync.yml
 ```
 
-安装器不会覆盖已有文件；已有 `AGENTS.md` 时只追加一个带标记的入口。若检测到会覆盖已有协作事实，安装会停止并列出冲突文件。
-
-建议在 GitHub 保护主分支：只允许 PR 合并、至少一人审批，并把 `repo-task-sync` 设为 required check。
+安装器不会静默覆盖已有文件；已有 `AGENTS.md` 时只追加带标记的协议入口。
 
 ## 本仓库开发
 
@@ -115,4 +184,4 @@ npm test
 npm run verify
 ```
 
-VibeCollab 自身使用 `.project-to-act` 治理，但它不会被安装到业务仓库。可分发 Skill 位于 `skills/repo-task-sync/`。
+VibeCollab 自身使用 `.project-to-act` 治理，但该治理账本不会安装到业务仓库。可分发 Skill 位于 `skills/repo-task-sync/`。

@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-009",
+  "state": "done",
+  "revision": 7,
+  "owner": "codex",
+  "branch": "codex/vc-009-multi-task-monitor",
+  "contextHash": "804022deb05be1516875fa2340ea10d9dce7375b241e459940612427d6a4ece7",
+  "updatedAt": "2026-08-28T13:20:33.444Z",
+  "lastCheckpoint": null,
+  "activeSessionId": null,
+  "currentActor": null,
+  "handoffState": "paused",
+  "handoffId": null
+}

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "sessionId": "s-80340396-6049-4b0e-97f7-df91740915c3",
+  "taskId": "VC-009",
+  "actorId": "codex",
+  "executor": "codex",
+  "executorVersion": null,
+  "model": null,
+  "source": "cli-tracked",
+  "status": "completed",
+  "startedAt": "2026-08-28T12:57:59.529Z",
+  "endedAt": "2026-08-28T13:20:33.291Z",
+  "elapsedSeconds": 1354,
+  "gitStart": {
+    "available": true,
+    "headSha": "9673c576ab7e61f1f43af62565988532d79e0fa7",
+    "clean": false,
+    "statusHash": "9a73e3dad5eed36d63d3b00e3a2e19179ea0a61f31d8f487d3342683c5fb6e01"
+  },
+  "gitMetrics": {
+    "available": false,
+    "reason": "dirty-session-start",
+    "startStatusHash": "9a73e3dad5eed36d63d3b00e3a2e19179ea0a61f31d8f487d3342683c5fb6e01"
+  },
+  "toolReported": null,
+  "summary": "Implemented multi-task directories, task CLI, revisioned CI association, Session task anchors, legacy migration and safe runtime upgrade; 13 tests and distribution check passed."
+}

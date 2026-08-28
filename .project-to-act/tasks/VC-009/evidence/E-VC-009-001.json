@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "E-VC-009-001",
+  "taskId": "VC-009",
+  "recordedAt": "2026-08-28T13:19:25+08:00",
+  "baseSha": "9673c576ab7e61f1f43af62565988532d79e0fa7",
+  "commands": [
+    {
+      "command": "npm.cmd run verify",
+      "exitCode": 0,
+      "result": "13 Node tests passed and distribution check passed"
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "result": "No whitespace errors; one informational CRLF-to-LF warning for openai.yaml"
+    }
+  ],
+  "journeys": [
+    "Alice and Bob created AGENT-101 and AGENT-102 from the same main, validated and merged both without a shared task-file conflict",
+    "Alice handed AGENT-001 to Bob through one task file and Bob recovered the same code and decisions in another clone",
+    "Legacy .ai-team/TASK.md migration preview preserved the source and execution moved identical content into a task directory",
+    "Explicit upgrade refreshed managed runtime while preserving PROJECT.md and task content",
+    "Private Codex Sessions resolved task metadata and retained privacy and token failure-closed behavior"
+  ],
+  "fileHashes": {
+    "scripts/task-store.mjs": "8857cb7216588803f7ccf58b2623cec14d00c2e850e2f2aad34fa131901c96df",
+    "scripts/check.mjs": "0453e8af1def69b29b36386f17d31d17fec0772c450359c9e22b7264231fa9c2",
+    "scripts/session.mjs": "28b6622a8548df0507b616997827ffb08424b034b4875137fa4268448d7f8207",
+    "scripts/cli.mjs": "5bb3542f611679fefce0f67489e8406fcc1ba4a241f2af66524449267d7b9a2e",
+    "scripts/install.mjs": "e71d5fa4f260d361abd248c1816b35afacb76e89d76a24f415cb2b528633b1aa",
+    "skills/repo-task-sync/SKILL.md": "a98f3320a9c9b4ed7ab0ac64a9272e14869ecd984258b6ca041672a602846727",
+    "tests/repo-task-sync.test.mjs": "dabec0a43546bca42358c9357c77e1d92eb1ac0b20f9df57c10f87c30f467d60"
+  },
+  "limitations": [
+    "Git-only Core cannot prevent two offline machines from editing one task before either publishes; branch protection and the future Monitor provide additional detection",
+    "Real GitHub protected-branch trial remains required before public release"
+  ]
+}

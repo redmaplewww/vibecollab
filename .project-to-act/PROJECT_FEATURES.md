@@ -22,10 +22,15 @@
 | F-005   | 纯文件 PR/Merge 上下文同步  | P0     | 已完成 | 无    | 无服务安装；代码与 TASK 同 PR；另一 clone 合并后恢复完整上下文  | E-004   |
 | F-006   | 私有仓库 Session 会话账本   | P0     | 已完成 | F-005 | 默认关闭；Private 门禁、Codex Hook、独立 Markdown、统计与拒绝公开采集通过 | E-007   |
 | F-007   | 一键安装与无感工作量采集     | P0     | 已完成 | F-006 | setup/doctor/report、Git 身份自动识别、Token 数值降级与分发包测试通过 | E-008   |
+| F-008   | 多 Task 并行协作协议          | P0     | 已完成 | F-005 | 不同 Task 可并行、同一 Task 单写入者、CI/Session 精确归属并可迁移旧仓库 | E-010 |
+| F-009   | 可选团队 Monitor              | P0     | 已规划 | F-008 | 脱敏事件、GitHub 投影、功能/代码/工时看板和私有部署完成验收 | 待生成 |
 
 ## 功能变更历史
 
 按时间倒序追加：日期、功能 ID、变化、原因、影响、证据 ID 和确认来源。
+
+- 2026-08-28：F-008 达到本地完成条件；多任务目录、任务 CLI、CI 关联、Revision、Private Session 锚点、旧版迁移和显式升级通过 13 项自动化测试及跨 clone 并行旅程；证据 E-010。
+- 2026-08-28：新增 F-008、F-009；用户确认并行成员应维护不同 Task，并批准将多任务协议与已归档 Monitor 方案连续实施。Monitor 保持可选，Core 无服务时继续完整可用。
 
 - 2026-08-10：F-007 达到本地完成条件；打包后的 `vibecollab` bin 可独立安装运行，一条 setup 命令可配置 Private 仓库，doctor/report 可统一诊断与统计；10 项测试证明 Token 数值降级、秘密 transcript 文本不落盘和未知格式失败关闭；证据 E-008。
 - 2026-08-10：F-006 达到本地完成条件；双 Actor 生成不同 Session 路径，Windows Hook 可从子目录定位仓库，用户原文/AI 最终响应/耗时/Git/可用 Token 进入低优先级 Markdown，公开策略失败关闭；证据 E-007。

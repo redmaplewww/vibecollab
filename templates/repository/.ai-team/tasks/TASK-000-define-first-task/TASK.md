@@ -1,7 +1,8 @@
-# Current Task
+# Task TASK-000
 
 - ID: `TASK-000`
 - Title: `Define the first shared task`
+- Revision: `0`
 - Status: `planning`
 - Owner: `unassigned`
 - Next owner: `unassigned`
@@ -32,7 +33,7 @@ Replace this planning task with one concrete, observable outcome.
 
 ## Next step
 
-Fill this file, assign one owner, and open the first implementation PR.
+Complete this task contract, confirm one owner, and open its implementation PR.
 
 ## Verification
 

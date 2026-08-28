@@ -6,6 +6,7 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { installRepositoryFiles } from "./install.mjs";
 import { validateRepository } from "./check.mjs";
+import { createTask, listTasks, migrateLegacyTask, selectTask } from "./task-store.mjs";
 
 function git(root, args) {
   const result = spawnSync("git", args, { cwd: root, encoding: "utf8", windowsHide: true });
@@ -14,26 +15,44 @@ function git(root, args) {
 
 function parseArgs(argv) {
   const command = argv[0] && !argv[0].startsWith("-") ? argv[0] : "help";
+  let cursor = command === "help" && (!argv[0] || argv[0].startsWith("-")) ? 0 : 1;
+  let action = null;
+  let positional = [];
+  if (command === "task" || command === "migrate") {
+    action = argv[cursor] && !argv[cursor].startsWith("-") ? argv[cursor++] : null;
+  }
   const options = {
     command,
+    action,
     target: process.cwd(),
     privateSessions: false,
     dryRun: false,
     json: false,
     base: null,
+    taskId: null,
+    allTasks: false,
+    upgrade: false,
+    title: null,
+    owner: null,
   };
-  const start = command === "help" && (!argv[0] || argv[0].startsWith("-")) ? 0 : 1;
-  for (let index = start; index < argv.length; index += 1) {
-    const value = argv[index];
-    if (value === "--target" || value === "--root") options.target = resolve(argv[++index]);
+  for (; cursor < argv.length; cursor += 1) {
+    const value = argv[cursor];
+    if (value === "--target" || value === "--root") options.target = resolve(argv[++cursor]);
     else if (value === "--private" || value === "--private-sessions") options.privateSessions = true;
     else if (value === "--dry-run") options.dryRun = true;
     else if (value === "--json") options.json = true;
-    else if (value === "--base") options.base = argv[++index];
+    else if (value === "--base") options.base = argv[++cursor];
+    else if (value === "--task") options.taskId = argv[++cursor];
+    else if (value === "--all") options.allTasks = true;
+    else if (value === "--upgrade") options.upgrade = true;
+    else if (value === "--title") options.title = argv[++cursor];
+    else if (value === "--owner") options.owner = argv[++cursor];
     else if (value === "--help" || value === "-h") options.command = "help";
     else if (value === "--version" || value === "-v") options.command = "version";
+    else if (!value.startsWith("-")) positional.push(value);
     else throw new Error(`Unknown argument: ${value}`);
   }
+  options.positional = positional;
   return options;
 }
 
@@ -58,8 +77,9 @@ function setup(options) {
     target: root,
     dryRun: options.dryRun,
     privateSessions: options.privateSessions,
+    upgrade: options.upgrade,
   });
-  const validation = options.dryRun ? null : validateRepository({ root });
+  const validation = options.dryRun ? null : validateRepository({ root, allTasks: true });
   const actor = identity(root);
   return {
     ok: options.dryRun || Boolean(validation?.valid),
@@ -73,15 +93,15 @@ function setup(options) {
     nextActions: [
       ...(actor ? [] : ["Set this repository's Git identity: git config user.name \"Your Name\""]),
       ...(options.privateSessions ? ["Open Codex in this repository and trust the project Hook once"] : []),
+      "Edit the generated TASK-000 or create a task with: vibecollab task create <ID> --title <title>",
       "Commit the generated collaboration files and share them through your normal pull request",
-      "Work normally; no manual session start or stop is required",
     ],
   };
 }
 
 function doctor(options) {
   const root = repositoryRoot(options.target);
-  const validation = validateRepository({ root, base: options.base });
+  const validation = validateRepository({ root, base: options.base, taskId: options.taskId, allTasks: true });
   const actor = identity(root);
   const hooksInstalled = existsSync(resolve(root, ".codex/hooks.json"));
   return {
@@ -93,12 +113,14 @@ function doctor(options) {
       gitRepository: true,
       gitIdentity: Boolean(actor),
       collaborationFiles: validation.valid,
+      tasks: validation.tasks.length > 0,
       privateHook: hooksInstalled,
       privateSessions: validation.sessions.enabled,
     },
     validation,
     actions: [
       ...(actor ? [] : ["Run: git config user.name \"Your Name\""]),
+      ...validation.warnings,
       ...(!validation.valid ? validation.errors : []),
     ],
   };
@@ -106,15 +128,57 @@ function doctor(options) {
 
 function report(options) {
   const root = repositoryRoot(options.target);
-  const validation = validateRepository({ root, base: options.base });
+  const validation = validateRepository({
+    root,
+    base: options.base,
+    taskId: options.taskId,
+    allTasks: options.allTasks,
+  });
   return {
     ok: validation.valid,
     command: "report",
     root,
     task: validation.task,
+    tasks: validation.tasks,
     git: validation.git,
     sessions: validation.sessions,
+    warnings: validation.warnings,
     errors: validation.errors,
+  };
+}
+
+function taskCommand(options) {
+  const root = repositoryRoot(options.target);
+  if (options.action === "create") {
+    const id = options.positional[0];
+    if (!id || !options.title) throw new Error("Usage: vibecollab task create <ID> --title <title> [--owner <owner>]");
+    const result = createTask({
+      root,
+      id,
+      title: options.title,
+      owner: options.owner || identity(root) || "unassigned",
+    });
+    return { ok: true, command: "task-create", root, task: result };
+  }
+  if (options.action === "use") {
+    const id = options.positional[0];
+    if (!id) throw new Error("Usage: vibecollab task use <ID>");
+    return { ok: true, command: "task-use", root, task: selectTask({ root, id }) };
+  }
+  if (options.action === "list") {
+    return { ok: true, command: "task-list", root, tasks: listTasks(root).map(({ markdown, absolutePath, ...task }) => task) };
+  }
+  throw new Error("Usage: vibecollab task <create|use|list> ...");
+}
+
+function migrate(options) {
+  if (options.action !== "multi-task") throw new Error("Usage: vibecollab migrate multi-task [--dry-run]");
+  const root = repositoryRoot(options.target);
+  return {
+    ok: true,
+    command: "migrate-multi-task",
+    root,
+    migration: migrateLegacyTask({ root, dryRun: options.dryRun }),
   };
 }
 
@@ -125,7 +189,7 @@ function printHuman(result) {
         `VibeCollab ${result.version} is ready in ${result.root}`,
         `Private session journal: ${result.privateSessions ? "enabled" : "disabled"}`,
         `Actor: ${result.actor}`,
-        `Created ${result.installation.created.length}; appended ${result.installation.appended.length}; unchanged ${result.installation.unchanged.length}`,
+        `Created ${result.installation.created.length}; appended ${result.installation.appended.length}; updated ${result.installation.updated.length}; unchanged ${result.installation.unchanged.length}`,
         ...result.nextActions.map((action, index) => `${index + 1}. ${action}`),
       ].join("\n") + "\n",
     );
@@ -138,17 +202,34 @@ function printHuman(result) {
     );
     return;
   }
-  const task = result.task;
+  if (result.command === "task-list") {
+    process.stdout.write(`${result.tasks.map((task) => `${task.id}  ${task.status}  ${task.owner}  ${task.path}`).join("\n")}\n`);
+    return;
+  }
+  if (result.command === "task-create" || result.command === "task-use") {
+    process.stdout.write(`Task ${result.task.id}: ${result.task.path}\n`);
+    return;
+  }
+  if (result.command === "migrate-multi-task") {
+    process.stdout.write(`${result.migration.dryRun ? "Would migrate" : "Migrated"} ${result.migration.from} -> ${result.migration.to}\n`);
+    return;
+  }
   const sessions = result.sessions.totals;
+  const taskLines = result.task
+    ? [
+        `Task ${result.task.id}: ${result.task.title}`,
+        `Function progress: ${result.task.acceptance.completed}/${result.task.acceptance.total}${result.task.acceptance.percent === null ? "" : ` (${result.task.acceptance.percent}%)`}`,
+      ]
+    : [`Tasks: ${result.tasks.length}; use --task <ID> or --all`];
   process.stdout.write(
     [
-      `Task ${task.id ?? "unavailable"}: ${task.title ?? "unavailable"}`,
-      `Function progress: ${task.acceptance.completed}/${task.acceptance.total}${task.acceptance.percent === null ? "" : ` (${task.acceptance.percent}%)`}`,
+      ...taskLines,
       result.git.available
         ? `Code progress: ${result.git.commits} commits, ${result.git.changedFiles} files, +${result.git.additions}/-${result.git.deletions}`
         : "Code progress: add --base <branch-or-sha> for a Git comparison",
       `Sessions: ${sessions.sessions}; elapsed: ${sessions.elapsedSeconds}s; Token coverage: ${sessions.tokenCoverage.reported}/${sessions.tokenCoverage.total}`,
       `Result: ${result.ok ? "valid" : "blocked"}`,
+      ...result.warnings.map((warning) => `- Warning: ${warning}`),
       ...result.errors.map((error) => `- ${error}`),
     ].join("\n") + "\n",
   );
@@ -159,11 +240,15 @@ function help() {
     "VibeCollab — file-only collaboration for AI coding teams",
     "",
     "Usage:",
-    "  vibecollab setup --private       Install in the current private Git repository",
-    "  vibecollab doctor                Check identity, files, Hook and policy",
-    "  vibecollab report [--base main]  Show function, code and session progress",
+    "  vibecollab setup --private [--upgrade]",
+    "  vibecollab task create <ID> --title <title> [--owner <owner>]",
+    "  vibecollab task use <ID>",
+    "  vibecollab task list",
+    "  vibecollab doctor [--task <ID>]",
+    "  vibecollab report [--task <ID>|--all] [--base main]",
+    "  vibecollab migrate multi-task --dry-run",
     "",
-    "Options: --target <path> --json --dry-run --private --base <ref>",
+    "Options: --target <path> --json --dry-run --private --upgrade --base <ref> --task <ID> --all",
   ].join("\n");
 }
 
@@ -177,10 +262,19 @@ export function runCli(argv = process.argv.slice(2)) {
     process.stdout.write(`${packageVersion()}\n`);
     return { ok: true, command: "version" };
   }
-  if (!new Set(["setup", "doctor", "report"]).has(options.command)) {
-    throw new Error(`Unknown command: ${options.command}\n\n${help()}`);
-  }
-  const result = options.command === "setup" ? setup(options) : options.command === "doctor" ? doctor(options) : report(options);
+  const result =
+    options.command === "setup"
+      ? setup(options)
+      : options.command === "doctor"
+        ? doctor(options)
+        : options.command === "report"
+          ? report(options)
+          : options.command === "task"
+            ? taskCommand(options)
+            : options.command === "migrate"
+              ? migrate(options)
+              : null;
+  if (!result) throw new Error(`Unknown command: ${options.command}\n\n${help()}`);
   if (options.json) process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
   else printHuman(result);
   if (!result.ok) process.exitCode = 1;

@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-009",
+  "baseSha": "9673c576ab7e61f1f43af62565988532d79e0fa7",
+  "inputs": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "311a54c699ac089b7f48199aad9ca21407bbed36fefc5fda0f49e5328f490916",
+      "bytes": 1691,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/PROJECT_OVERVIEW.md",
+      "sha256": "efeff8fd707faa4bbe9be77ea92867314d57cad13b7226550bfda62c3d2d78d7",
+      "bytes": 7655,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/COLLABORATION_CONFIG.json",
+      "sha256": "5dee6b22c829fe7e01fb5b8491a69853498d6c24aa785c758763042c92b85fcd",
+      "bytes": 543,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/skill/SKILL.md",
+      "sha256": "ef4702dd4e6d7ba67526aa91b691884df7e1416bccf95e28f0eb75db63efe464",
+      "bytes": 4043,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/tasks/VC-009/TASK.json",
+      "sha256": "a68f92341184c636a36630c1c39251e8a29f4cf501f5088621370978c012f428",
+      "bytes": 3935,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": ".project-to-act/tasks/VC-009/INTENT.json",
+      "sha256": "73d8ed821256452cf3523d668b56b750b9593574962a22283e4c985fea13b2d2",
+      "bytes": 523,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": "docs/design/MULTI_TASK_COLLABORATION_AUDIT.md",
+      "sha256": "b1169ea6abb851b4ef5fd3e92f5b8df4f78b777617f48336cf7bd50f4602c77e",
+      "bytes": 6603,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": "templates/repository/.ai-team/tasks/TASK-000-define-first-task/TASK.md",
+      "sha256": "9dab3996e1190047756ac37e4413efa12e3324d04f724ebe7a139531c26a4389",
+      "bytes": 874,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": "scripts/check.mjs",
+      "sha256": "0453e8af1def69b29b36386f17d31d17fec0772c450359c9e22b7264231fa9c2",
+      "bytes": 11339,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": "scripts/session.mjs",
+      "sha256": "28b6622a8548df0507b616997827ffb08424b034b4875137fa4268448d7f8207",
+      "bytes": 25365,
+      "normalization": "utf8-lf"
+    },
+    {
+      "path": "skills/repo-task-sync/SKILL.md",
+      "sha256": "a98f3320a9c9b4ed7ab0ac64a9272e14869ecd984258b6ca041672a602846727",
+      "bytes": 6079,
+      "normalization": "utf8-lf"
+    }
+  ],
+  "createdAt": "2026-08-28T13:20:26.627Z",
+  "contextHash": "804022deb05be1516875fa2340ea10d9dce7375b241e459940612427d6a4ece7"
+}

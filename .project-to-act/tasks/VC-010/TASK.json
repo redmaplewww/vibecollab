@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-010",
+  "title": "Optional Monitor MVP",
+  "owner": "codex",
+  "goal": "在不破坏文件化 Core 的前提下，实现可选 VibeCollab Monitor MVP，汇总多 Task 功能进度、本地 AI 工作事件、GitHub PR/CI 状态、Token 和估算活跃时间。",
+  "reason": "团队需要近实时查看每个人正在处理的功能、尚未推送的改动、PR/CI 进度和工作量，同时仓库与 GitHub 必须继续保持权威事实源。",
+  "currentBehavior": "v0.5.0 只提供仓库内 doctor/report 和 Session Markdown，没有跨机器事件采集、GitHub Webhook、状态投影或团队看板。",
+  "expectedBehavior": "Monitor 作为完全可选的控制面运行；本地适配器脱敏上报、离线补发，GitHub Webhook提供远端事实，服务端按 taskId 投影团队、项目、任务和成员状态。",
+  "scope": {
+    "allowed": [
+      "apps/monitor/",
+      "packages/",
+      "deploy/",
+      "scripts/",
+      "templates/private-session/",
+      "tests/",
+      "package.json",
+      "package-lock.json",
+      "README.md",
+      "docs/",
+      ".project-to-act/"
+    ],
+    "nonGoals": [
+      "不让 Monitor 成为任务或功能事实源",
+      "不提供自动合并、部署或生产写权限",
+      "不采集逐键键盘、屏幕、思维链、系统提示、工具原始输出或源码正文",
+      "MVP 不实现商业计费、企业 SSO 和复杂多租户销售能力",
+      "不使用 Token、代码行或在线时长生成个人绩效分数"
+    ]
+  },
+  "invariants": [
+    "Core 未配置 Monitor 时必须保持完整可用",
+    "Monitor 离线不得阻塞 AI、commit、push 或 PR",
+    "事件至少一次投递并使用 eventId 幂等",
+    "主分支任务和 GitHub Merge 高于本地快照和 AI 自述",
+    "原始对话只能在 Private 策略显式允许时采集",
+    "所有外部事件先通过版本化 Schema 校验"
+  ],
+  "authoritativeContext": [
+    "docs/development-logs/2026-08-28-vibecollab-monitor-development-plan.md",
+    "docs/design/MULTI_TASK_COLLABORATION_AUDIT.md",
+    ".project-to-act/skill/references/monitoring.md",
+    ".project-to-act/skill/references/protocol.md"
+  ],
+  "dependencies": [
+    "VC-009"
+  ],
+  "contracts": {
+    "read": [
+      "multi-task-protocol-v1"
+    ],
+    "write": [
+      "work-event-v1",
+      "monitor-projection-v1"
+    ]
+  },
+  "acceptance": [
+    "Core 在没有 Monitor 地址和凭据时所有现有命令正常工作",
+    "本地事件经过脱敏 Schema 校验后进入 Outbox，并可批量重试和幂等补发",
+    "服务端可以接收、去重和投影 Session、Task、Git 和 Token 事件",
+    "GitHub Webhook 验证签名并投影 Push、PR、Review 和 CI 状态",
+    "看板提供团队、仓库、任务和成员视图，并区分本地临时状态与 GitHub 权威状态",
+    "估算活跃时间与 Session 墙钟时间分开展示，并报告数据覆盖率",
+    "敏感字段、源码正文、逐键行为和思维链不会进入事件账本",
+    "Docker 私有部署和一条 connect 命令有完整文档及自动化测试"
+  ],
+  "verification": [
+    "npm.cmd run verify",
+    "Monitor API 集成测试",
+    "重复、乱序、离线补发和错误签名反例",
+    "Playwright 或等价浏览器旅程",
+    "node .project-to-act/bin/pta.mjs validate --ci"
+  ],
+  "baseSha": "9673c576ab7e61f1f43af62565988532d79e0fa7",
+  "gitBaseline": {
+    "clean": false,
+    "statusHash": "523c325460ae03b7317f15eac619e6297ce771bae03544d53ad91b33c203326f"
+  },
+  "createdAt": "2026-08-28T12:56:07.140Z"
+}

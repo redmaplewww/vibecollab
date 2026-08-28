@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-009",
+  "revision": 0,
+  "baseSha": "9673c576ab7e61f1f43af62565988532d79e0fa7",
+  "paths": [
+    "scripts/",
+    "templates/",
+    "skills/repo-task-sync/",
+    "tests/",
+    "README.md",
+    "AGENTS.md",
+    "docs/",
+    ".project-to-act/"
+  ],
+  "symbols": [
+    "resolveTask",
+    "listTasks",
+    "createTask",
+    "migrateLegacyTask",
+    "validateRepository",
+    "taskMetadata",
+    "runCli"
+  ],
+  "contractsWrite": [
+    "multi-task-protocol-v1"
+  ],
+  "migrations": true
+}

@@ -9,6 +9,16 @@ const templateRoot = resolve(packageRoot, "templates/repository");
 const privateSessionTemplateRoot = resolve(packageRoot, "templates/private-session");
 const START = "<!-- repo-task-sync:start -->";
 const END = "<!-- repo-task-sync:end -->";
+const UPGRADEABLE = new Set([
+  ".ai-team/SKILL.md",
+  ".ai-team/check.mjs",
+  ".ai-team/session.mjs",
+  ".ai-team/task-store.mjs",
+  ".codex/hooks.json",
+  ".github/PULL_REQUEST_TEMPLATE/repo-task-sync.md",
+  ".github/workflows/repo-task-sync.yml",
+]);
+const PRESERVE_ON_UPGRADE = new Set([".ai-team/PROJECT.md"]);
 
 function listFiles(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -21,30 +31,42 @@ function parseArgs(argv) {
   let target = null;
   let dryRun = false;
   let privateSessions = false;
+  let upgrade = false;
   for (let index = 0; index < argv.length; index += 1) {
     if (argv[index] === "--target") target = argv[++index];
     else if (argv[index] === "--dry-run") dryRun = true;
     else if (argv[index] === "--private-sessions") privateSessions = true;
+    else if (argv[index] === "--upgrade") upgrade = true;
     else throw new Error(`Unknown argument: ${argv[index]}`);
   }
   if (!target) {
     throw new Error(
-      "Usage: node scripts/install.mjs --target <repository> [--private-sessions] [--dry-run]",
+      "Usage: node scripts/install.mjs --target <repository> [--private-sessions] [--upgrade] [--dry-run]",
     );
   }
-  return { target: resolve(target), dryRun, privateSessions };
+  return { target: resolve(target), dryRun, privateSessions, upgrade };
 }
 
-export function installRepositoryFiles({ target, dryRun = false, privateSessions = false }) {
+export function installRepositoryFiles({ target, dryRun = false, privateSessions = false, upgrade = false }) {
   const targetRoot = resolve(target);
   if (!existsSync(targetRoot) || !statSync(targetRoot).isDirectory()) {
     throw new Error(`Target directory does not exist: ${targetRoot}`);
   }
 
-  const mappings = listFiles(templateRoot).map((source) => ({
+  let mappings = listFiles(templateRoot).map((source) => ({
     source,
     destination: resolve(targetRoot, relative(templateRoot, source)),
   }));
+  const existingTasksRoot = resolve(targetRoot, ".ai-team/tasks");
+  const hasTaskDirectory =
+    existsSync(existingTasksRoot) && listFiles(existingTasksRoot).some((path) => path.endsWith("TASK.md"));
+  if (hasTaskDirectory || existsSync(resolve(targetRoot, ".ai-team/TASK.md"))) {
+    mappings = mappings.filter(
+      (mapping) =>
+        relative(targetRoot, mapping.destination).replaceAll("\\", "/") !==
+        ".ai-team/tasks/TASK-000-define-first-task/TASK.md",
+    );
+  }
   if (privateSessions) {
     mappings.push(
       ...listFiles(privateSessionTemplateRoot).map((source) => ({
@@ -57,6 +79,7 @@ export function installRepositoryFiles({ target, dryRun = false, privateSessions
     { source: resolve(packageRoot, "skills/repo-task-sync/SKILL.md"), destination: resolve(targetRoot, ".ai-team/SKILL.md") },
     { source: resolve(packageRoot, "scripts/check.mjs"), destination: resolve(targetRoot, ".ai-team/check.mjs") },
     { source: resolve(packageRoot, "scripts/session.mjs"), destination: resolve(targetRoot, ".ai-team/session.mjs") },
+    { source: resolve(packageRoot, "scripts/task-store.mjs"), destination: resolve(targetRoot, ".ai-team/task-store.mjs") },
   );
 
   const conflicts = [];
@@ -65,7 +88,13 @@ export function installRepositoryFiles({ target, dryRun = false, privateSessions
     if (existsSync(mapping.destination)) {
       const existing = readFileSync(mapping.destination, "utf8");
       const incoming = readFileSync(mapping.source, "utf8");
-      if (existing !== incoming) conflicts.push(relative(targetRoot, mapping.destination).replaceAll("\\", "/"));
+      const destinationName = relative(targetRoot, mapping.destination).replaceAll("\\", "/");
+      if (
+        existing !== incoming &&
+        !(upgrade && (UPGRADEABLE.has(destinationName) || PRESERVE_ON_UPGRADE.has(destinationName)))
+      ) {
+        conflicts.push(destinationName);
+      }
     }
   }
   if (conflicts.length) {
@@ -75,13 +104,22 @@ export function installRepositoryFiles({ target, dryRun = false, privateSessions
   const created = [];
   const unchanged = [];
   const appended = [];
+  const updated = [];
   for (const mapping of mappings) {
     const destinationName = relative(targetRoot, mapping.destination).replaceAll("\\", "/");
     const incoming = readFileSync(mapping.source, "utf8");
     if (destinationName === "AGENTS.md" && existsSync(mapping.destination)) {
       const existing = readFileSync(mapping.destination, "utf8");
       if (existing.includes(START) && existing.includes(END)) {
-        unchanged.push(destinationName);
+        if (upgrade) {
+          const before = existing.slice(0, existing.indexOf(START));
+          const after = existing.slice(existing.indexOf(END) + END.length);
+          const replacement = `${before.trimEnd()}\n\n${incoming.trim()}${after}`;
+          if (!dryRun) writeFileSync(mapping.destination, replacement, "utf8");
+          updated.push(destinationName);
+        } else {
+          unchanged.push(destinationName);
+        }
       } else {
         if (!dryRun) writeFileSync(mapping.destination, `${existing.trimEnd()}\n\n${incoming}`, "utf8");
         appended.push(destinationName);
@@ -89,6 +127,11 @@ export function installRepositoryFiles({ target, dryRun = false, privateSessions
       continue;
     }
     if (existsSync(mapping.destination)) {
+      if (upgrade && UPGRADEABLE.has(destinationName)) {
+        if (!dryRun) writeFileSync(mapping.destination, incoming, "utf8");
+        updated.push(destinationName);
+        continue;
+      }
       unchanged.push(destinationName);
       continue;
     }
@@ -99,7 +142,7 @@ export function installRepositoryFiles({ target, dryRun = false, privateSessions
     created.push(destinationName);
   }
 
-  return { valid: true, target: targetRoot, dryRun, privateSessions, created, appended, unchanged };
+  return { valid: true, target: targetRoot, dryRun, privateSessions, upgrade, created, appended, updated, unchanged };
 }
 
 const invokedPath = process.argv[1] ? resolve(process.argv[1]) : null;

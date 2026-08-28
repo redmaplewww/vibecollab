@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "eventId": "42a4f220-1ed0-4a0e-9594-be4f2d0c11f6",
+  "taskId": "VC-009",
+  "type": "session-stop",
+  "timestamp": "2026-08-28T13:20:33.294Z",
+  "sessionId": "s-80340396-6049-4b0e-97f7-df91740915c3",
+  "actorId": "codex",
+  "executor": "codex",
+  "result": "completed",
+  "elapsedSeconds": 1354,
+  "gitMetricsAvailable": false,
+  "revision": 5
+}

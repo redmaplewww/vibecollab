@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "taskId": "VC-010",
+  "state": "draft",
+  "revision": 0,
+  "owner": "codex",
+  "branch": "codex/vc-009-multi-task-monitor",
+  "contextHash": null,
+  "updatedAt": "2026-08-28T12:56:07.140Z",
+  "lastCheckpoint": null,
+  "activeSessionId": null,
+  "currentActor": null,
+  "handoffState": null,
+  "handoffId": null
+}
