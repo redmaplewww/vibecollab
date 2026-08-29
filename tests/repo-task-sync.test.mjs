@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import test from "node:test";
@@ -470,6 +470,43 @@ test("private session policy rejects verbatim capture when repository visibility
     });
     assert.equal(hook.status, 1);
     assert.equal(existsSync(resolve(root, ".ai-team/sessions/2026-08/thr_public.md")), false);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("scripts respond when invoked through a symlinked absolute path", (t) => {
+  const root = mkdtempSync(resolve(tmpdir(), "vibecollab-symlink-"));
+  try {
+    const checkLink = resolve(root, "check-link.mjs");
+    symlinkSync(resolve("scripts/check.mjs"), checkLink);
+    const check = spawnSync(process.execPath, [checkLink, "--json"], {
+      cwd: root,
+      encoding: "utf8",
+      windowsHide: true,
+    });
+    // Running in a bare directory is unconfigured (valid:false, exit 1),
+    // but the CLI must still produce JSON once the invocation guard matches.
+    assert.ok([0, 1].includes(check.status), check.stderr || check.stdout);
+    const report = JSON.parse(check.stdout);
+    assert.equal(typeof report.valid, "boolean");
+    assert.equal(typeof report.git, "object");
+
+    const sessionLink = resolve(root, "session-link.mjs");
+    symlinkSync(resolve("scripts/session.mjs"), sessionLink);
+    const validate = spawnSync(process.execPath, [sessionLink, "validate"], {
+      cwd: root,
+      encoding: "utf8",
+      windowsHide: true,
+    });
+    assert.equal(validate.status, 0, validate.stderr || validate.stdout);
+    assert.equal(JSON.parse(validate.stdout).valid, true);
+  } catch (error) {
+    if (error?.code === "EPERM" && process.platform === "win32") {
+      t.skip("file symlinks need Developer Mode or elevation on this Windows configuration");
+    } else {
+      throw error;
+    }
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

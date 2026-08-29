@@ -32,6 +32,7 @@
 
 按时间倒序追加：日期、完成事项、证据 ID、遗留问题、下一步和确认来源。不要覆盖旧记录。
 
+- 2026-08-29：修复 `scripts/check.mjs` 与 `scripts/session.mjs` 自调用守卫在 macOS 符号链接下的静默失配——经绝对路径（临时目录、npx 等）调用时 `resolve(argv[1])` 与真路径 `import.meta.url` 比对不过，命令 exit 0 却空转，导致 3 项 macOS 测试失败；采用与 `cli.mjs` `2c8b90d` 一致的 `realpathSync` 修复，并新增经符号链接路径调用的平台无关回归测试（旧守卫负例验证 `Unexpected end of JSON input`）；`npm run verify` 13/13 与分发检查通过；证据 E-011。
 - 2026-08-23：修复 Private setup 的 npm 分发缺失：将会被 npm 忽略的模板 `.gitignore` 改为普通模板名，并由安装器写入目标 `.ai-team/.gitignore`；真实 tarball/bin Private setup、Session validate 与独立分发检查通过，完整验证仍有 3 项既有 macOS 临时路径测试失败；证据 E-010。
 - 2026-08-10：按仓库所有者明确要求关闭 Draft PR #1，将 v0.5.0 直接快进推送到公共 main；修复测试错误调用 Windows Hook 命令的 Linux CI 问题后，main Verify run 31364978558 成功；证据 E-009。
 - 2026-08-10：完成 VC-008 本地实现；新增可通过 GitHub npx 使用的零依赖 `vibecollab` bin，提供 setup/doctor/report；无需环境变量或手动 Session 生命周期；Token 缺失时仅解析 transcript 数值事件并验证秘密文本不落盘。10 项测试、分发包安装、Skill、治理与 diff 门禁通过；证据 E-008。
