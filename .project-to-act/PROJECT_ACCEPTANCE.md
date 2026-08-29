@@ -5,9 +5,9 @@
 
 ## 当前验收结论
 
-- 结论：Private setup 的 npm 分发缺失已修复并通过真实 tarball 验证；远程使用需包含本修复提交
-- 验收范围：一条命令 Private setup、自动 Git 身份、doctor/report、无需手动 Session 生命周期、Hook/Transcript Token 来源、秘密文本隔离、未知格式失败关闭与可安装分发包
-- 最后检查：2026-08-23，真实 tarball/bin Private setup、目标 `.ai-team/.gitignore`、Session validate 和独立分发检查通过；完整验证 9/12，3 项既有 macOS 临时路径测试失败
+- 结论：macOS 符号链接下的自调用守卫失配已修复；`check.mjs`/`session.mjs` 与 `cli.mjs` 修复保持一致，测试 13/13 全过
+- 验收范围：一条命令 Private setup、自动 Git 身份、doctor/report、无需手动 Session 生命周期、Hook/Transcript Token 来源、秘密文本隔离、未知格式失败关闭、可安装分发包与符号链接路径调用
+- 最后检查：2026-08-29，`npm run verify` 13 项测试与分发检查通过；既有 3 项 macOS 临时路径测试失败全部转绿（证据 E-011）
 - 遗留问题：尚未在真实 Codex Private GitHub 仓库触发完整生命周期；transcript Token 解析是版本化降级路径，长期稳定精确计量仍应使用 OpenTelemetry
 
 ## 验收标准
@@ -16,7 +16,7 @@
 | ------- | ---------------------------- | ---- | -------------------------------------------------- | ------- |
 | A-001   | 项目目标达到可验证结果       | 通过 | 独立 3210 服务读取 AgentLoop 实际数据              | E-001   |
 | A-002   | 范围内功能满足完成条件       | 通过 | 对照 `PROJECT_FEATURES.md` 与浏览器实测            | E-001   |
-| A-003   | 项目约定的测试全部通过       | 通过 | `npm run verify`、Skill/适配器/安装夹具检查        | E-001   |
+| A-003   | 项目约定的测试全部通过       | 通过 | `npm run verify`、Skill/适配器/安装夹具检查        | E-011   |
 | A-004   | 阻塞与重大遗留问题已处理     | 通过 | AgentLoop 误嵌入代码已撤回且工作区干净             | E-001   |
 | A-005   | 交接包可验证并可在空目录恢复 | 通过 | Bundle verify/clone、ZIP 边界、`npm ci` 与完整门禁 | E-002   |
 | A-006   | 两人可顺序接力同一个 Task    | 通过 | 双 clone publish/push、拒绝错误接收者、accept/pull | E-003   |
@@ -39,6 +39,7 @@
 | E-008   | 2026-08-10 | `npm.cmd run verify`；tarball/bin 安装；Skill/治理校验；Token 秘密文本反例           | 0        | 核心文件 SHA-256 见证据 JSON                    | 10 测试、分发、setup/doctor/report、数值 Token 降级和失败关闭通过    | `.project-to-act/tasks/VC-008/evidence/E-VC-008-001.json` | CLI、Session 解析器、安装器或 Skill 变化前 |
 | E-009   | 2026-08-10 | 直接快进推送 main；GitHub Actions Verify run 31364978558                            | 0        | 发布代码 `995d586`                              | Linux Runner 10 项测试与分发检查通过；公共 main 已包含 v0.5.0       | `.project-to-act/tasks/VC-008/evidence/E-VC-008-002.json` | main、工作流、测试或分发入口变化前 |
 | E-010   | 2026-08-23 | `npm pack --dry-run --json`；tarball `vibecollab setup --private --json`；Session validate；`node scripts/check-distribution.mjs`；`npm run verify` | 0；0；0；0；1 | 基线 `2c8b90d`；install `93518ac…`；template `c740db8…` | npm 包含普通模板并正确安装为 `.ai-team/.gitignore`；Private setup/validate 与独立分发检查通过；完整验证 9/12，后续分发步骤因前置失败跳过 | 本文件及本地命令输出 | 安装器、Private 模板、Session 或测试变化前 |
+| E-011   | 2026-08-29 | `npm run verify`；符号链接路径回归测试（负例回退守卫验证）；`node scripts/check-distribution.mjs` | 0；0（预期 1）；0 | 基线 main `6331ebc`；本 PR 修复 | check/session 自调用守卫改用 `realpathSync` 后 13 项测试与分发检查全过；3 项既有 macOS 临时路径失败转绿；回归测试在旧守卫上以 `Unexpected end of JSON input` 失败、新守卫通过 | `.project-to-act/PROJECT_ACCEPTANCE.md` 与本地命令输出 | 安装器、Session、校验器或测试变化前 |
 
 ## Gate 记录
 
@@ -56,6 +57,7 @@
 
 按时间倒序追加：日期、检查范围、证据 ID、结果、遗留问题和结论。失败、跳过与过期证据也必须如实记录。
 
+- 2026-08-29：修复自调用守卫在 macOS 符号链接路径下的静默失配。`check.mjs`/`session.mjs` 采用与 `cli.mjs` `2c8b90d` 一致的 `realpathSync`，新增经符号链接路径调用的平台无关回归测试（已实测在旧守卫上以 `Unexpected end of JSON input` 失败）。`npm run verify` 13/13 测试与分发检查通过，3 项既有 macOS 临时路径测试失败全部转绿；证据 E-011。真实 Codex Private GitHub 生命周期验证仍待后续。
 - 2026-08-23：Private setup npm 分发缺失的最小修复本地验收通过；真实 tarball 安装生成 `.ai-team/.gitignore` 且 Session validate 有效，独立分发检查通过。`npm run verify` 仍有 3 项既有 macOS 临时路径测试失败，并因此跳过串联的分发步骤；远程使用需包含本修复提交；证据 E-010。
 - 2026-08-10：v0.5.0 直接发布完成；Draft PR #1 按所有者要求关闭，初次 PR CI 暴露 Linux 错误执行 Windows Hook 测试命令，定向修复后直接快进推送 main，GitHub Actions run 31364978558 成功；证据 E-009。
 - 2026-08-10：VC-008 本地验收通过；打包后的 CLI 可独立安装并报告 0.5.0，Private 临时 Git 仓库一条 setup 命令后 doctor/report 有效，Git 身份自动识别；Hook 无直接 Token 时只读取 transcript 的累计数值，秘密消息不进入 Markdown，未知格式保持 unavailable；证据 E-008。
