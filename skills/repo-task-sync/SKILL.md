@@ -1,11 +1,13 @@
 ---
 name: repo-task-sync
-description: Coordinate sequential development of one repository task across people and AI coding tools using versioned project files, pull requests, Git merges, and CI. Use when initializing shared AI context, continuing another developer's task, preparing a handoff, checking that code and functional progress stay synchronized, recovering work without prior chat history, or maintaining an explicitly enabled private-repository session journal with original user submissions, AI work summaries, timing, Git evidence, and available token usage.
+description: Coordinate one legacy repository task across people and AI coding tools using `.ai-team/TASK.md`, pull requests, Git merges, and CI. Use when initializing or resuming legacy shared context, preparing a Git/PR handoff, checking code/task synchronization, producing a canonical read view or migration preview, or maintaining an explicitly enabled private session journal. Do not create a second task store when project-to-act is already canonical.
 ---
 
 # Repo Task Sync
 
 Treat the repository as the shared memory and the merged commit as the handoff snapshot. Do not require Codex or any other specific AI product.
+
+This Skill is the legacy/Git adapter, not the owner of structured task runtime or role payload contracts. When `.project-to-act/tasks/<ID>/` is already canonical, use Project-to-Act for task and role semantics; do not update both stores.
 
 ## Start or resume work
 
@@ -63,3 +65,9 @@ Use this workflow only when `.ai-team/session-policy.json` exists, validates, an
 ## Report progress
 
 Run `node .ai-team/check.mjs --base <target-branch>`. Report functional progress from acceptance checkboxes and code progress from Git commits, changed files, additions, and deletions. When private sessions are enabled, also report session count, elapsed wall time, actor coverage, and token coverage. Use these values for coordination, capacity planning, and review coverage, never as individual performance scores.
+
+## Canonical read view and migration preview
+
+Run `node .ai-team/check.mjs --canonical-view` when another workflow needs `canonical-task-view@1`. Preserve `provider: repo-task-sync-legacy` and every reported gap. In verification checklists, prefix an item with `[self]` or `[independent]` only when the repository facts prove that distinction.
+
+Run `node .ai-team/check.mjs --migration-preview` to produce a proposed Project-to-Act task bundle. The preview is read-only and intentionally carries legacy gaps. Do not write the preview, activate a target provider, or retire `.ai-team/TASK.md` without a separately reviewed migration that selects exactly one writer.

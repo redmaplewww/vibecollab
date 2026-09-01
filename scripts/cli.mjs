@@ -188,7 +188,7 @@ export function runCli(argv = process.argv.slice(2)) {
 }
 
 const invokedPath = process.argv[1] ? realpathSync(process.argv[1]) : null;
-if (invokedPath === fileURLToPath(import.meta.url)) {
+if (invokedPath === realpathSync(fileURLToPath(import.meta.url))) {
   try {
     runCli();
   } catch (error) {

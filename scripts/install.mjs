@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, statSync, writeFileSync } from "node:fs";
 import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -105,8 +105,8 @@ export function installRepositoryFiles({ target, dryRun = false, privateSessions
   return { valid: true, target: targetRoot, dryRun, privateSessions, created, appended, unchanged };
 }
 
-const invokedPath = process.argv[1] ? resolve(process.argv[1]) : null;
-if (invokedPath === fileURLToPath(import.meta.url)) {
+const invokedPath = process.argv[1] ? realpathSync(process.argv[1]) : null;
+if (invokedPath === realpathSync(fileURLToPath(import.meta.url))) {
   try {
     const result = installRepositoryFiles(parseArgs(process.argv.slice(2)));
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);

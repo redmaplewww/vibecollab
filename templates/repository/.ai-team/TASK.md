@@ -10,6 +10,14 @@
 
 Replace this planning task with one concrete, observable outcome.
 
+## In scope
+
+- Replace with the files, components, or behaviors this task may change.
+
+## Out of scope
+
+- Replace with adjacent work this task must not absorb.
+
 ## Acceptance scenarios
 
 - [ ] Define at least one Given/When/Then or equivalent verifiable scenario.

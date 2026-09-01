@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, lstatSync, readFileSync, realpathSync } from "node:fs";
 import { resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -29,13 +29,18 @@ const REQUIRED_SECTIONS = [
 const VALID_STATES = new Set(["planning", "active", "handoff", "blocked", "done"]);
 
 function parseArgs(argv) {
-  const options = { root: process.cwd(), base: null, json: false };
+  const options = { root: process.cwd(), base: null, json: false, canonicalView: false, migrationPreview: false };
   for (let index = 0; index < argv.length; index += 1) {
     const value = argv[index];
     if (value === "--root") options.root = resolve(argv[++index]);
     else if (value === "--base") options.base = argv[++index];
     else if (value === "--json") options.json = true;
+    else if (value === "--canonical-view") options.canonicalView = true;
+    else if (value === "--migration-preview") options.migrationPreview = true;
     else throw new Error(`Unknown argument: ${value}`);
+  }
+  if (options.canonicalView && options.migrationPreview) {
+    throw new Error("Choose only one of --canonical-view or --migration-preview");
   }
   return options;
 }
@@ -48,6 +53,196 @@ function field(markdown, name) {
 function section(markdown, title) {
   const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   return markdown.match(new RegExp(`^## ${escaped}\\s*\\n([\\s\\S]*?)(?=^## |(?![\\s\\S]))`, "m"))?.[1]?.trim() ?? "";
+}
+
+function paragraph(markdown) {
+  return markdown
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join("\n");
+}
+
+function bulletItems(markdown) {
+  return markdown
+    .split(/\r?\n/)
+    .map((line) => line.match(/^\s*-\s+(?!\[[ xX]\]\s)(.+)$/)?.[1]?.trim() ?? null)
+    .filter(Boolean);
+}
+
+function checklistItems(markdown, kind) {
+  return [...markdown.matchAll(/^\s*-\s+\[([ xX])\]\s+(.+)$/gm)].map((match) => {
+    let text = match[2].trim();
+    let independence = "unknown";
+    if (kind === "verification") {
+      const marker = text.match(/^\[(self|independent)\]\s*/i)?.[1]?.toLowerCase();
+      if (marker) {
+        independence = marker;
+        text = text.replace(/^\[(self|independent)\]\s*/i, "").trim();
+      }
+      return {
+        text,
+        status: /[xX]/.test(match[1]) ? "passed" : "pending",
+        independence,
+      };
+    }
+    return { text, status: /[xX]/.test(match[1]) ? "satisfied" : "pending" };
+  });
+}
+
+function identity(value) {
+  return !value || value === "unassigned" ? null : value;
+}
+
+function gap(code, field, detail) {
+  return { code, field, detail };
+}
+
+export function buildCanonicalTaskView({ root = process.cwd() } = {}) {
+  const absoluteRoot = resolve(root);
+  const taskPath = resolve(absoluteRoot, ".ai-team/TASK.md");
+  if (!existsSync(taskPath)) {
+    const error = new Error("Legacy provider not found: .ai-team/TASK.md");
+    error.code = "PROVIDER_NOT_FOUND";
+    error.exitCode = 3;
+    error.recovery = "Install repo-task-sync or pass the repository containing .ai-team/TASK.md.";
+    throw error;
+  }
+  if (lstatSync(taskPath).isSymbolicLink()) {
+    const error = new Error("Legacy task source must be a regular in-repository file, not a symlink");
+    error.code = "LEGACY_TASK_INVALID";
+    error.exitCode = 1;
+    error.recovery = "Replace .ai-team/TASK.md with a regular repository file.";
+    throw error;
+  }
+  const task = readFileSync(taskPath, "utf8").replaceAll("\r\n", "\n");
+  const metadata = {
+    id: field(task, "ID"),
+    title: field(task, "Title"),
+    status: field(task, "Status"),
+    owner: field(task, "Owner"),
+    nextOwner: field(task, "Next owner"),
+  };
+  for (const [name, value] of Object.entries(metadata)) {
+    if (!value) {
+      const error = new Error(`TASK.md is missing metadata: ${name}`);
+      error.code = "LEGACY_TASK_INVALID";
+      error.exitCode = 1;
+      error.recovery = "Complete the required TASK.md metadata.";
+      throw error;
+    }
+  }
+  if (!VALID_STATES.has(metadata.status)) {
+    const error = new Error(`TASK.md has invalid Status: ${metadata.status}`);
+    error.code = "LEGACY_TASK_INVALID";
+    error.exitCode = 1;
+    error.recovery = "Use planning, active, handoff, blocked, or done.";
+    throw error;
+  }
+
+  const goal = paragraph(section(task, "Goal"));
+  const acceptance = checklistItems(section(task, "Acceptance scenarios"), "acceptance");
+  const verification = checklistItems(section(task, "Verification"), "verification");
+  if (!goal || acceptance.length === 0 || verification.length === 0) {
+    const error = new Error("TASK.md requires a goal plus acceptance and verification checklists");
+    error.code = "LEGACY_TASK_INVALID";
+    error.exitCode = 1;
+    error.recovery = "Complete the legacy task contract before building a canonical view.";
+    throw error;
+  }
+
+  const gaps = [
+    gap("LEGACY_MAPPING_GAP", "revision", "Legacy TASK.md does not carry a monotonic task revision"),
+    gap("LEGACY_MAPPING_GAP", "baseRevision", "Legacy TASK.md does not carry a base task revision"),
+  ];
+  const allowed = bulletItems(section(task, "In scope"));
+  const nonGoals = bulletItems(section(task, "Out of scope"));
+  if (allowed.length === 0) gaps.push(gap("LEGACY_MAPPING_GAP", "scope.allowed", "Legacy task does not declare an In scope list"));
+  if (nonGoals.length === 0) gaps.push(gap("LEGACY_MAPPING_GAP", "scope.nonGoals", "Legacy task does not declare an Out of scope list"));
+  verification.forEach((item, index) => {
+    if (item.independence === "unknown") {
+      gaps.push(gap("LEGACY_MAPPING_GAP", `verification[${index}].independence`, "Prefix the item with [self] or [independent] to preserve verification independence"));
+    }
+  });
+
+  let state;
+  let handoffState = null;
+  if (metadata.status === "planning") {
+    state = identity(metadata.owner) && acceptance.length > 0 && goal ? "ready" : "draft";
+  } else if (metadata.status === "active") state = "in_progress";
+  else if (metadata.status === "handoff") {
+    state = null;
+    handoffState = "published";
+    gaps.push(gap("LEGACY_MAPPING_GAP", "state", "Legacy handoff does not retain the preceding canonical core state"));
+  } else state = metadata.status;
+
+  const nextAction = paragraph(section(task, "Next step")) || null;
+  return {
+    schemaVersion: 1,
+    provider: "repo-task-sync-legacy",
+    source: { kind: "legacy-task-markdown", path: ".ai-team/TASK.md" },
+    taskId: metadata.id,
+    title: metadata.title,
+    goal,
+    scope: { allowed, nonGoals },
+    owner: identity(metadata.owner),
+    nextOwner: identity(metadata.nextOwner),
+    state,
+    handoffState,
+    revision: null,
+    baseRevision: null,
+    acceptance,
+    verification,
+    evidenceRefs: [],
+    nextAction,
+    conflicts: [],
+    gaps,
+  };
+}
+
+export function buildMigrationPreview({ root = process.cwd() } = {}) {
+  const view = buildCanonicalTaskView({ root });
+  const blockers = [];
+  if (view.state === null) {
+    blockers.push({
+      code: "LEGACY_MAPPING_GAP",
+      field: "state",
+      detail: "Choose and review the canonical core state before migrating a legacy handoff",
+    });
+  }
+  return {
+    schemaVersion: 1,
+    writes: false,
+    migratable: blockers.length === 0,
+    sourceProvider: view.provider,
+    targetProvider: "project-to-act",
+    targetPath: `.project-to-act/tasks/${view.taskId}`,
+    bundle: {
+      "TASK.json": {
+        schemaVersion: 1,
+        taskId: view.taskId,
+        title: view.title,
+        owner: view.owner,
+        goal: view.goal,
+        scope: view.scope,
+        acceptance: view.acceptance,
+        verification: view.verification,
+      },
+      "STATUS.json": {
+        schemaVersion: 1,
+        taskId: view.taskId,
+        state: view.state,
+        revision: 0,
+        owner: view.owner,
+        nextOwner: view.nextOwner,
+        handoffState: view.handoffState,
+        nextAction: view.nextAction,
+      },
+    },
+    gaps: view.gaps,
+    blockers,
+    activation: "Preview only. Select project-to-act as the sole provider in a separate reviewed migration; do not dual-write.",
+  };
 }
 
 function git(root, args) {
@@ -206,16 +401,24 @@ function printHuman(result) {
   );
 }
 
-const invokedPath = process.argv[1] ? resolve(process.argv[1]) : null;
-if (invokedPath === fileURLToPath(import.meta.url)) {
+const invokedPath = process.argv[1] ? realpathSync(process.argv[1]) : null;
+if (invokedPath === realpathSync(fileURLToPath(import.meta.url))) {
   try {
     const options = parseArgs(process.argv.slice(2));
-    const result = validateRepository(options);
-    if (options.json) process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
-    else printHuman(result);
-    if (!result.valid) process.exitCode = 1;
+    if (options.canonicalView || options.migrationPreview) {
+      const result = options.migrationPreview ? buildMigrationPreview(options) : buildCanonicalTaskView(options);
+      process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    } else {
+      const result = validateRepository(options);
+      if (options.json) process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+      else printHuman(result);
+      if (!result.valid) process.exitCode = 1;
+    }
   } catch (error) {
-    process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
-    process.exitCode = 1;
+    const message = error instanceof Error ? error.message : String(error);
+    if (error && typeof error === "object" && "code" in error) {
+      process.stderr.write(`${JSON.stringify({ code: error.code, message, recovery: error.recovery ?? "Repair the source and retry." })}\n`);
+    } else process.stderr.write(`${message}\n`);
+    process.exitCode = error && typeof error === "object" && "exitCode" in error ? error.exitCode : 2;
   }
 }
