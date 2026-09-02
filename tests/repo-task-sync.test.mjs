@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import test from "node:test";
 
 import { installRepositoryFiles } from "../scripts/install.mjs";
-import { validateRepository } from "../scripts/check.mjs";
+import { buildCanonicalTaskView, buildMigrationPreview, validateRepository } from "../scripts/check.mjs";
 import { extractTokenUsageFromTranscript } from "../scripts/session.mjs";
 
 function git(root, ...args) {
@@ -245,6 +245,122 @@ test("installed checker runs without package dependencies", () => {
   }
 });
 
+test("installed checker runs when invoked through a symlinked repository path", () => {
+  const sandbox = mkdtempSync(resolve(tmpdir(), "vibecollab-cli-symlink-"));
+  const root = resolve(sandbox, "physical");
+  const alias = resolve(sandbox, "logical");
+  try {
+    mkdirSync(root);
+    installRepositoryFiles({ target: root });
+    symlinkSync(root, alias, process.platform === "win32" ? "junction" : "dir");
+    const result = spawnSync(process.execPath, [resolve(alias, ".ai-team/check.mjs"), "--json"], {
+      cwd: alias,
+      encoding: "utf8",
+      windowsHide: true,
+    });
+    assert.equal(result.status, 0, result.stderr || result.stdout);
+    assert.equal(JSON.parse(result.stdout).valid, true);
+  } finally {
+    rmSync(sandbox, { recursive: true, force: true });
+  }
+});
+
+test("legacy provider emits canonical-task-view@1 with explicit gaps", () => {
+  const root = mkdtempSync(resolve(tmpdir(), "vibecollab-canonical-"));
+  try {
+    installRepositoryFiles({ target: root });
+    replaceTask(root, [
+      ["- ID: `TASK-000`", "- ID: `TASK-001`"],
+      ["- Title: `Define the first shared task`", "- Title: `Implement one observable outcome`"],
+      ["- Owner: `unassigned`", "- Owner: `alice`"],
+      ["Replace this planning task with one concrete, observable outcome.", "Return the same source-backed task semantics"],
+      ["- Replace with the files, components, or behaviors this task may change.", "- src/**"],
+      ["- Replace with adjacent work this task must not absorb.", "- Unrelated refactors"],
+      ["- [ ] Define at least one Given/When/Then or equivalent verifiable scenario.", "- [x] Given X, when Y, then Z"],
+      ["- [ ] Replace with the repository's required check commands and results.", "- [x] [self] python -m unittest"],
+      ["Fill this file, assign one owner, and open the first implementation PR.", "Run the parity fixture"],
+    ]);
+
+    const view = buildCanonicalTaskView({ root });
+    assert.equal(view.schemaVersion, 1);
+    assert.equal(view.provider, "repo-task-sync-legacy");
+    assert.equal(view.state, "ready");
+    assert.deepEqual(view.scope, { allowed: ["src/**"], nonGoals: ["Unrelated refactors"] });
+    assert.deepEqual(view.acceptance, [{ text: "Given X, when Y, then Z", status: "satisfied" }]);
+    assert.deepEqual(view.verification, [{ text: "python -m unittest", status: "passed", independence: "self" }]);
+    assert.equal(view.revision, null);
+    assert.ok(view.gaps.some((item) => item.field === "revision"));
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("legacy handoff preserves published state without inventing prior core state", () => {
+  const root = mkdtempSync(resolve(tmpdir(), "vibecollab-handoff-view-"));
+  try {
+    installRepositoryFiles({ target: root });
+    replaceTask(root, [
+      ["- Status: `planning`", "- Status: `handoff`"],
+      ["- Owner: `unassigned`", "- Owner: `alice`"],
+      ["- Next owner: `unassigned`", "- Next owner: `bob`"],
+    ]);
+    const view = buildCanonicalTaskView({ root });
+    assert.equal(view.state, null);
+    assert.equal(view.handoffState, "published");
+    assert.ok(view.gaps.some((item) => item.field === "state"));
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("migration preview is deterministic and writes no target bundle", () => {
+  const root = mkdtempSync(resolve(tmpdir(), "vibecollab-migration-preview-"));
+  try {
+    installRepositoryFiles({ target: root });
+    const preview = buildMigrationPreview({ root });
+    assert.equal(preview.writes, false);
+    assert.equal(preview.migratable, true);
+    assert.equal(preview.targetProvider, "project-to-act");
+    assert.equal(preview.bundle["TASK.json"].taskId, "TASK-000");
+    assert.equal(existsSync(resolve(root, ".project-to-act")), false);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("migration preview blocks a legacy handoff until its core state is chosen", () => {
+  const root = mkdtempSync(resolve(tmpdir(), "vibecollab-migration-handoff-"));
+  try {
+    installRepositoryFiles({ target: root });
+    replaceTask(root, [
+      ["- Status: `planning`", "- Status: `handoff`"],
+      ["- Owner: `unassigned`", "- Owner: `alice`"],
+      ["- Next owner: `unassigned`", "- Next owner: `bob`"],
+    ]);
+    const preview = buildMigrationPreview({ root });
+    assert.equal(preview.migratable, false);
+    assert.ok(preview.blockers.some((item) => item.field === "state"));
+    assert.equal(existsSync(resolve(root, ".project-to-act")), false);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("legacy canonical provider rejects a symlinked TASK.md", () => {
+  const root = mkdtempSync(resolve(tmpdir(), "vibecollab-task-symlink-"));
+  try {
+    installRepositoryFiles({ target: root });
+    const taskPath = resolve(root, ".ai-team/TASK.md");
+    const sourcePath = resolve(root, ".ai-team/TASK-source.md");
+    writeFileSync(sourcePath, readFileSync(taskPath, "utf8"), "utf8");
+    rmSync(taskPath);
+    symlinkSync(sourcePath, taskPath, "file");
+    assert.throws(() => buildCanonicalTaskView({ root }), /must be a regular in-repository file/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("one setup command installs, diagnoses, and reports a private Git repository", () => {
   const root = mkdtempSync(resolve(tmpdir(), "vibecollab-one-command-"));
   try {
@@ -305,8 +421,11 @@ test("private installation records Codex hook events into one low-priority Markd
     configureGit(root, "Alice");
     const installed = installRepositoryFiles({ target: root, privateSessions: true });
     assert.equal(installed.privateSessions, true);
+    assert.ok(installed.created.includes(".ai-team/.gitignore"));
     assert.ok(installed.created.includes(".ai-team/session-policy.json"));
     assert.ok(installed.created.includes(".codex/hooks.json"));
+    assert.equal(existsSync(resolve(root, ".ai-team/.gitignore")), true);
+    assert.equal(existsSync(resolve(root, ".ai-team/gitignore.template")), false);
     replaceTask(root, [
       ["- ID: `TASK-000`", "- ID: `AGENT-PRIVATE-001`"],
       ["- Title: `Define the first shared task`", "- Title: `Build one private agent`"],
