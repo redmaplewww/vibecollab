@@ -48,7 +48,7 @@ export function installRepositoryFiles({ target, dryRun = false, privateSessions
   if (privateSessions) {
     mappings.push(
       ...listFiles(privateSessionTemplateRoot).map((source) => {
-        const templatePath = relative(privateSessionTemplateRoot, source);
+        const templatePath = relative(privateSessionTemplateRoot, source).replaceAll("\\", "/");
         return {
           source,
           destination: resolve(targetRoot, templatePath === ".ai-team/gitignore.template" ? ".ai-team/.gitignore" : templatePath),

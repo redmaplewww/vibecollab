@@ -421,8 +421,11 @@ test("private installation records Codex hook events into one low-priority Markd
     configureGit(root, "Alice");
     const installed = installRepositoryFiles({ target: root, privateSessions: true });
     assert.equal(installed.privateSessions, true);
+    assert.ok(installed.created.includes(".ai-team/.gitignore"));
     assert.ok(installed.created.includes(".ai-team/session-policy.json"));
     assert.ok(installed.created.includes(".codex/hooks.json"));
+    assert.equal(existsSync(resolve(root, ".ai-team/.gitignore")), true);
+    assert.equal(existsSync(resolve(root, ".ai-team/gitignore.template")), false);
     replaceTask(root, [
       ["- ID: `TASK-000`", "- ID: `AGENT-PRIVATE-001`"],
       ["- Title: `Define the first shared task`", "- Title: `Build one private agent`"],
