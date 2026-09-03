@@ -5,14 +5,14 @@
 ## 当前版本
 
 - 版本号：`0.6.0`
-- 发布状态：本地验收通过，尚未发布到 GitHub main
-- 兼容性说明：保留 v0.5 多 Task 文件；移除 Private Session/Hook/Token 运行时和相关参数；维护者升级时退役采集脚本但保留已有历史 Session 文件
-- 最后更新：2026-08-29
+- 发布状态：聚合推送修复已通过本地验收，尚未发布到 GitHub main
+- 兼容性说明：默认 PR 单 Task 门禁不变；新增 CI 内部 `--aggregate` 参数供 main push 使用；保留 v0.5 多 Task 文件并移除 Private Session/Hook/Token 运行时
+- 最后更新：2026-09-03
 
 ## 下一版本计划
 
 - 目标版本：`0.6.0` 发布
-- 计划内容：把已验收的 Multi-task Protocol v1 与 GitHub Native Progress v1 发布到公共 main
+- 计划内容：把 Multi-task Protocol v1、GitHub Native Progress v1 和 main 聚合推送修复发布到公共 main
 - 发布条件：远程 main 内容一致，真实 GitHub Actions `verify` 与 `repo-task-sync` 成功
 
 ## 版本历史

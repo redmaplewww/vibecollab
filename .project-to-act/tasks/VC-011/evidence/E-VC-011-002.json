@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "E-VC-011-002",
+  "taskId": "VC-011",
+  "recordedAt": "2026-09-03T21:57:15+08:00",
+  "baseSha": "ec53f7a8f75dc81e6eb398336bbc22d93edfed8d",
+  "commands": [
+    {
+      "command": "node --test tests/repo-task-sync.test.mjs tests/github-native-report.test.mjs",
+      "exitCode": 1,
+      "result": "New aggregate regression tests passed; two existing installed-script tests exposed macOS /var and /private/var entry-path aliasing"
+    },
+    {
+      "command": "node --test tests/repo-task-sync.test.mjs tests/github-native-report.test.mjs",
+      "exitCode": 0,
+      "result": "11 of 11 targeted tests passed after canonicalizing installed checker and reporter entry paths"
+    },
+    {
+      "command": "npm run verify",
+      "exitCode": 0,
+      "result": "11 Node tests passed and distribution check passed"
+    }
+  ],
+  "journeys": [
+    "A normal pull request that changes code and two Task files remains blocked by the exactly-one-Task and ambiguous-Task diagnostics",
+    "A main push range containing two independently valid Task integrations passes when the workflow supplies --aggregate",
+    "An aggregate range with code changes and no Task update remains blocked",
+    "Ordinary contributors continue using branch, commit, push and pull request without invoking --aggregate",
+    "Installed checker and reporter commands execute on macOS when temporary paths use /var and module URLs use /private/var"
+  ],
+  "externalEvidence": [
+    {
+      "url": "https://github.com/dyingforge/collab-test/actions/runs/33753907580",
+      "result": "Pre-fix main push reproduced the false exactly-one-Task and ambiguous-Task failures"
+    }
+  ],
+  "fileHashes": {
+    "scripts/check.mjs": "4b69608be94e7324b59db9ebc2554741702582e9b77d2297e36ec7fd64ffa818",
+    "scripts/github-report.mjs": "935ba5553caa4cb10cdf0b30ec2a411cb268201e33893442ecbb0b8589446c55",
+    "templates/repository/.github/workflows/repo-task-sync.yml": "8ce2f4855738170ec6e823c925369a0d048521a2ab68dd8c2d849fe585ded637",
+    "tests/repo-task-sync.test.mjs": "c863c740b8ed3f7ad6e5d267c34c9927b2c98da6034df2d9609d2b8e9b480f8b",
+    "tests/github-native-report.test.mjs": "8e6b7ab02c6dfe3c1d13f6f887fd8b52d6210ab68c8e10dfd9229fa8468c98c4"
+  },
+  "limitations": [
+    "The fixed workflow has not yet been published and rerun in the GitHub test repository",
+    "Aggregate validation trusts protected-branch pull request checks to establish per-PR Task association",
+    "GitHub-native evidence cannot observe uncommitted local work or focused work hours"
+  ]
+}

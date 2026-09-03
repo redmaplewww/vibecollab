@@ -27,6 +27,8 @@ jobs:
         run: |
           if [[ -z "$BASE_SHA" || "$BASE_SHA" =~ ^0+$ ]]; then
             node .ai-team/check.mjs --all
+          elif [[ "$GITHUB_EVENT_NAME" == "push" ]]; then
+            node .ai-team/check.mjs --base "$BASE_SHA" --all --aggregate
           else
             node .ai-team/check.mjs --base "$BASE_SHA" --all
           fi
@@ -34,4 +36,9 @@ jobs:
         if: always()
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
-        run: node .ai-team/github-report.mjs --base "$BASE_SHA" >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == "push" ]]; then
+            node .ai-team/github-report.mjs --base "$BASE_SHA" --aggregate >> "$GITHUB_STEP_SUMMARY"
+          else
+            node .ai-team/github-report.mjs --base "$BASE_SHA" >> "$GITHUB_STEP_SUMMARY"
+          fi

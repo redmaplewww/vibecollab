@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -36,13 +36,14 @@ const REQUIRED_SECTIONS = [
 const VALID_STATES = new Set(["planning", "active", "handoff", "blocked", "done"]);
 
 function parseArgs(argv) {
-  const options = { root: process.cwd(), base: null, json: false, taskId: null, allTasks: false };
+  const options = { root: process.cwd(), base: null, json: false, taskId: null, allTasks: false, aggregate: false };
   for (let index = 0; index < argv.length; index += 1) {
     const value = argv[index];
     if (value === "--root") options.root = resolve(argv[++index]);
     else if (value === "--base") options.base = argv[++index];
     else if (value === "--task") options.taskId = argv[++index];
     else if (value === "--all") options.allTasks = true;
+    else if (value === "--aggregate") options.aggregate = true;
     else if (value === "--json") options.json = true;
     else throw new Error(`Unknown argument: ${value}`);
   }
@@ -172,6 +173,7 @@ export function validateRepository({
   base = null,
   taskId = null,
   allTasks = false,
+  aggregate = false,
 } = {}) {
   const absoluteRoot = resolve(root);
   const errors = [];
@@ -204,7 +206,7 @@ export function validateRepository({
   if (nonCollaborationFiles.length > 0 && changedTaskPaths.length === 0) {
     errors.push("Code or product files changed without updating the corresponding .ai-team/tasks/<ID>/TASK.md in the same PR");
   }
-  if (nonCollaborationFiles.length > 0 && changedTaskPaths.length > 1) {
+  if (!aggregate && nonCollaborationFiles.length > 0 && changedTaskPaths.length > 1) {
     errors.push("A normal code PR must update exactly one Task; split multi-task changes or use a separately reviewed integration PR");
   }
   if (base) {
@@ -227,7 +229,7 @@ export function validateRepository({
     changedFiles: progress.files,
     allowSingle: true,
   });
-  const needsSelectedTask = !allTasks || nonCollaborationFiles.length > 0 || Boolean(taskId);
+  const needsSelectedTask = Boolean(taskId) || (!aggregate && (!allTasks || nonCollaborationFiles.length > 0));
   if (!resolved.task && needsSelectedTask) errors.push(resolved.error);
   const selected = resolved.task
     ? tasks.find((task) => task.path === resolved.task.path) ?? null
@@ -270,7 +272,7 @@ function printHuman(result) {
 }
 
 const invokedPath = process.argv[1] ? resolve(process.argv[1]) : null;
-if (invokedPath === fileURLToPath(import.meta.url)) {
+if (invokedPath && realpathSync(invokedPath) === realpathSync(fileURLToPath(import.meta.url))) {
   try {
     const options = parseArgs(process.argv.slice(2));
     const result = validateRepository(options);

@@ -2,15 +2,17 @@
 
 import { resolve } from "node:path";
 import { spawnSync } from "node:child_process";
+import { realpathSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { validateRepository } from "./check.mjs";
 
 function parseArgs(argv) {
-  const options = { root: process.cwd(), base: null, json: false };
+  const options = { root: process.cwd(), base: null, json: false, aggregate: false };
   for (let index = 0; index < argv.length; index += 1) {
     const value = argv[index];
     if (value === "--root") options.root = resolve(argv[++index]);
     else if (value === "--base") options.base = argv[++index];
+    else if (value === "--aggregate") options.aggregate = true;
     else if (value === "--json") options.json = true;
     else throw new Error(`Unknown argument: ${value}`);
   }
@@ -63,10 +65,16 @@ export function buildGithubProgressReport({
   root = process.cwd(),
   base = null,
   github = process.env,
+  aggregate = false,
 } = {}) {
   const absoluteRoot = resolve(root);
   const resolvedBase = usableBase(absoluteRoot, base);
-  const validation = validateRepository({ root: absoluteRoot, base: resolvedBase, allTasks: true });
+  const validation = validateRepository({
+    root: absoluteRoot,
+    base: resolvedBase,
+    allTasks: true,
+    aggregate,
+  });
   return {
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
@@ -163,7 +171,7 @@ export function renderGithubProgressMarkdown(report) {
 }
 
 const invokedPath = process.argv[1] ? resolve(process.argv[1]) : null;
-if (invokedPath === fileURLToPath(import.meta.url)) {
+if (invokedPath && realpathSync(invokedPath) === realpathSync(fileURLToPath(import.meta.url))) {
   try {
     const options = parseArgs(process.argv.slice(2));
     const report = buildGithubProgressReport(options);
