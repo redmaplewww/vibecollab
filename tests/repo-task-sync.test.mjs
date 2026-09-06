@@ -113,6 +113,48 @@ test("code changes require exactly one matching Task update", () => {
   }
 });
 
+test("aggregate ranges allow multiple Task updates without weakening normal PR checks", () => {
+  const root = mkdtempSync(resolve(tmpdir(), "vibecollab-aggregate-"));
+  try {
+    git(root, "init", "-b", "main");
+    configureGit(root, "Maintainer");
+    installRepositoryFiles({ target: root });
+    git(root, "add", ".");
+    git(root, "commit", "-m", "chore: install collaboration files");
+    const base = git(root, "rev-parse", "HEAD");
+
+    mkdirSync(resolve(root, "src"));
+    writeFileSync(resolve(root, "src/one.js"), "export const one = 1;\n", "utf8");
+    writeFileSync(resolve(root, "src/two.js"), "export const two = 2;\n", "utf8");
+    const codeOnly = validateRepository({ root, base, allTasks: true, aggregate: true });
+    assert.equal(codeOnly.valid, false);
+    assert.ok(codeOnly.errors.some((error) => error.includes("without updating the corresponding")));
+
+    createTask({ root, id: "AGENT-201", title: "First aggregate task", owner: "alice" });
+    createTask({ root, id: "AGENT-202", title: "Second aggregate task", owner: "bob" });
+
+    const pullRequest = validateRepository({ root, base, allTasks: true });
+    assert.equal(pullRequest.valid, false);
+    assert.ok(pullRequest.errors.some((error) => error.includes("exactly one Task")));
+    assert.ok(pullRequest.errors.some((error) => error.includes("Task is ambiguous")));
+
+    const aggregate = validateRepository({ root, base, allTasks: true, aggregate: true });
+    assert.equal(aggregate.valid, true, aggregate.errors.join("\n"));
+    assert.equal(aggregate.task, null);
+    assert.equal(aggregate.git.changedFiles, 4);
+
+    const aggregateCommand = spawnSync(
+      process.execPath,
+      [resolve(root, ".ai-team/check.mjs"), "--base", base, "--all", "--aggregate"],
+      { cwd: root, encoding: "utf8", windowsHide: true },
+    );
+    assert.equal(aggregateCommand.status, 0, aggregateCommand.stderr || aggregateCommand.stdout);
+    assert.match(aggregateCommand.stdout, /Result: valid/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("two contributors can develop separate Tasks without a shared mutable task", () => {
   const root = mkdtempSync(resolve(tmpdir(), "vibecollab-parallel-"));
   try {

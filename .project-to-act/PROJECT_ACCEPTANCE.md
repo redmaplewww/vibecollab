@@ -5,10 +5,10 @@
 
 ## 当前验收结论
 
-- 结论：v0.6.0 GitHub 原生无感模式本地验收通过，尚未发布到公共 main
+- 结论：v0.6.0 main 聚合推送修复本地验收通过；修复后的真实 GitHub Actions 尚待发布复验
 - 验收范围：多 Task、同 Task 接力、GitHub 身份/权限边界、Task 功能进度、Commit 作者贡献、只读 Actions Job Summary、旧采集运行时退役和可安装分发包
-- 最后检查：2026-08-29，9 项 Node 测试、分发检查、GitHub 报告夹具、升级退役与治理校验
-- 遗留问题：真实 GitHub PR/push Actions Summary 需发布后验证；GitHub 原生证据不包含未提交修改或真实专注工时
+- 最后检查：2026-09-03，11 项 Node 测试、分发检查、严格 PR 与聚合 push 回归夹具
+- 遗留问题：修复后的真实 GitHub push Actions Summary 需发布后复验；GitHub 原生证据不包含未提交修改或真实专注工时
 
 ## 验收标准
 
@@ -25,7 +25,7 @@
 | A-009   | Private Session 可安全共享       | 通过 | 默认关闭、双 Actor Hook、独立 MD、公开策略反例与统计 | E-007   |
 | A-010   | 一条命令启用并无感记录           | 通过 | setup/doctor/report、分发 bin、自动身份、Token 降级反例 | E-008   |
 | A-011   | 多人可维护不同 Task 并行开发     | 通过 | 双并行 clone、任务目录、Revision/CI/Session 归属、迁移和升级测试 | E-010 |
-| A-012   | GitHub 原生无感功能与代码进度     | 通过 | 两人接力、Task 验收、Commit 作者、只读 Workflow、零成员命令与分发测试 | E-011 |
+| A-012   | GitHub 原生无感功能与代码进度     | 本地通过 | 单 Task PR 拒绝、多 Task 聚合 push、Task 验收、只读 Workflow 与分发测试 | E-012 |
 
 ## 证据索引
 
@@ -42,6 +42,7 @@
 | E-009   | 2026-08-10 | 直接快进推送 main；GitHub Actions Verify run 31364978558                            | 0        | 发布代码 `995d586`                              | Linux Runner 10 项测试与分发检查通过；公共 main 已包含 v0.5.0       | `.project-to-act/tasks/VC-008/evidence/E-VC-008-002.json` | main、工作流、测试或分发入口变化前 |
 | E-010   | 2026-08-28 | `npm.cmd run verify`；双人不同 Task 并行 clone；迁移、升级、Session 和 Revision 反例 | 0 | 核心文件 SHA-256 见证据 JSON | 13 项测试和分发检查通过；不同 Task 无共享 TASK 冲突，同 Task 接力保持有效 | `.project-to-act/tasks/VC-009/evidence/E-VC-009-001.json` | 多任务目录、CLI、校验、Session 或迁移变化前 |
 | E-011   | 2026-08-29 | `npm run verify`；两名提交作者同 Task 接力；只读 Actions/报告/升级退役与分发检查 | 0 | 核心文件 SHA-256 见证据 JSON | 9 项测试和分发检查通过；成员日常零额外命令，功能与代码进度可从 GitHub 原生证据重建 | `.project-to-act/tasks/VC-011/evidence/E-VC-011-001.json` | Task、报告器、工作流、安装器或 Skill 变化前 |
+| E-012   | 2026-09-03 | 定向 Node 测试；`npm run verify`；真实 GitHub 反例 Run 33753907580 | 0（最终） | 核心文件 SHA-256 见证据 JSON | PR 多 Task 仍失败；main 聚合多 Task 通过；代码无 Task 仍失败；11 项测试和分发检查通过 | `.project-to-act/tasks/VC-011/evidence/E-VC-011-002.json` | checker、reporter、workflow 或聚合语义变化前 |
 
 ## Gate 记录
 
@@ -55,11 +56,13 @@
 | G-006   | 2026-08-10 | v0.4.0 私有 Session | 默认关闭、Private 门禁、Hooks、Markdown、统计与反例 | 通过 | E-007 | 真实 Private GitHub/Codex 生命周期待发布后验证 |
 | G-007   | 2026-08-10 | v0.5.0 无感安装 | CLI 分发、Private setup、自动身份、统计、Token 降级与反例 | 通过 | E-008 | 真实 Private GitHub/Codex 生命周期待发布后验证 |
 | G-008   | 2026-08-29 | v0.6.0 GitHub 原生收敛 | 多 Task、同 Task 接力、只读 Actions Summary、零成员命令和运行时退役 | 通过 | E-011 | 真实 GitHub PR/push Summary 待发布后验证 |
+| G-009   | 2026-09-03 | v0.6.0 聚合推送修复 | PR 严格门禁、main 聚合报告、分发一致性与 macOS 安装入口 | 本地通过 | E-012 | 修复后的真实 GitHub Actions 待发布复验 |
 
 ## 验收记录
 
 按时间倒序追加：日期、检查范围、证据 ID、结果、遗留问题和结论。失败、跳过与过期证据也必须如实记录。
 
+- 2026-09-03：真实 GitHub Run 33753907580 复现一次 push 包含两个合法 Task 时的误拦截；实现 CI 内部 `--aggregate` 后，普通多 Task PR 仍失败，聚合范围通过，代码无 Task 仍失败。首次定向测试因既有 macOS `/var` 路径别名问题出现 2 项失败，修复 checker/reporter 命令入口后定向测试 11/11、`npm run verify` 与分发检查全部通过；证据 E-012。远程修复版 Actions 尚未运行。
 - 2026-08-29：VC-011 本地验收通过；9 项自动化测试覆盖维护者安装、成员零额外命令、两名 Commit 作者同 Task 接力、不同 Task 隔离、Task 功能验收、Git 贡献汇总、只读 Workflow、旧采集运行时退役和分发一致性；证据 E-011。真实 GitHub PR/push Actions Summary 待发布后验证。
 - 2026-08-28：VC-009 本地验收通过；13 项自动化测试覆盖新安装、多任务 CLI、Revision、代码/Task 同 PR、Alice/Bob 不同 Task 并行合并、同 Task 接力、旧版迁移、受控升级、Session 锚点和隐私反例；分发检查通过，证据 E-010。真实 GitHub protected branch 试运行仍待发布前执行。
 - 2026-08-10：v0.5.0 直接发布完成；Draft PR #1 按所有者要求关闭，初次 PR CI 暴露 Linux 错误执行 Windows Hook 测试命令，定向修复后直接快进推送 main，GitHub Actions run 31364978558 成功；证据 E-009。

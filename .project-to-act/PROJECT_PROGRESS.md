@@ -6,7 +6,7 @@
 
 | 任务                    | 状态     | 负责人 | 完成条件                                              | 证据 ID | 最后更新   |
 | ----------------------- | -------- | ------ | ----------------------------------------------------- | ------- | ---------- |
-| VC-011 GitHub 原生无感进度 | 本地完成 | Codex | 无独立服务/令牌；Actions 自动报告功能、代码、人员和验证进度 | E-011 | 2026-08-29 |
+| VC-011 GitHub 原生无感进度 | 修复完成、待远程复验 | Codex | PR 保持单 Task 门禁；main 聚合推送可报告多个已合并 Task | E-012 | 2026-09-03 |
 | VC-010 可选 Monitor MVP | 已取消 | Codex | 用户明确取消独立 Monitor、Bearer Token 和连接流程 | 不适用 | 2026-08-29 |
 | VC-009 多任务协作协议 | 本地完成 | Codex | 任务目录、CLI、CI/Session 归属、显式迁移和三人旅程通过 | E-010 | 2026-08-28 |
 | VC-008 一键安装与无感记录 | 已发布 | Codex  | CLI 分发、Private setup、自动身份、doctor/report、Token 降级和 main CI 通过 | E-009   | 2026-08-10 |
@@ -35,6 +35,7 @@
 
 按时间倒序追加：日期、完成事项、证据 ID、遗留问题、下一步和确认来源。不要覆盖旧记录。
 
+- 2026-09-03：真实 GitHub 测试确认多个 Task 依次合入 main 均通过，但一次 push 聚合两个合法 Task 会被误判为普通多 Task PR；新增仅供 main push 工作流使用的 `--aggregate`，保留格式、Revision 和代码必须伴随 Task 的校验，同时不放松 PR 单 Task 门禁。11 项测试及分发检查通过；证据 E-012。修复后的真实 Actions 尚待发布复验。
 - 2026-08-29：VC-011 本地完成；交付收敛为 GitHub 身份、Task、Commit/PR 与只读 Actions Summary，删除 Session/Hook/Token 运行时；两人同 Task 接力、不同 Task 隔离、贡献归属、升级退役和分发检查共 9 项测试通过；证据 E-011。真实 GitHub Actions 待发布后验证。
 - 2026-08-29：取消 VC-010 独立 Monitor，启动 VC-011 GitHub 原生无感进度；保留 VC-009 多任务文件协议，用户身份、权限与代码归属全部交给 GitHub，成员日常不再 setup/connect/checkpoint 或持有额外 Token。
 - 2026-08-28：VC-009 本地实现完成；目标仓库改为每个 Task 独立目录，新增 task create/use/list、分支/变更解析、Revision 门禁、旧 TASK 显式迁移、受控升级和 Session Git 锚点。13 项测试与分发检查通过，双人不同 Task 并行合并无共享文件冲突；证据 E-010。下一步进入 VC-010 Monitor MVP。

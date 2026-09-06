@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
@@ -7,6 +7,7 @@ import test from "node:test";
 
 import { buildGithubProgressReport, renderGithubProgressMarkdown } from "../scripts/github-report.mjs";
 import { installRepositoryFiles } from "../scripts/install.mjs";
+import { createTask } from "../scripts/task-store.mjs";
 
 function git(root, ...args) {
   return execFileSync("git", args, { cwd: root, encoding: "utf8", windowsHide: true }).trim();
@@ -115,7 +116,50 @@ test("installed workflow is read-only, automatic, and has no service credentials
   assert.match(workflow, /workflow_dispatch:/);
   assert.match(workflow, /GITHUB_STEP_SUMMARY/);
   assert.match(workflow, /github-report\.mjs/);
+  assert.match(workflow, /GITHUB_EVENT_NAME.*push/);
+  assert.match(workflow, /check\.mjs --base "\$BASE_SHA" --all --aggregate/);
+  assert.match(workflow, /github-report\.mjs --base "\$BASE_SHA" --aggregate/);
   assert.doesNotMatch(workflow, /Bearer|secret|token|connect|outbox|docker|monitor/i);
+});
+
+test("GitHub aggregate report accepts multiple Task updates in one push range", () => {
+  const root = mkdtempSync(resolve(tmpdir(), "vibecollab-github-aggregate-"));
+  try {
+    git(root, "init", "-b", "main");
+    configureGit(root, "Maintainer");
+    installRepositoryFiles({ target: root });
+    git(root, "add", ".");
+    git(root, "commit", "-m", "chore: install collaboration files");
+    const base = git(root, "rev-parse", "HEAD");
+
+    createTask({ root, id: "REPORT-101", title: "First report task", owner: "alice" });
+    createTask({ root, id: "REPORT-102", title: "Second report task", owner: "bob" });
+    mkdirSync(resolve(root, "src"));
+    writeFileSync(resolve(root, "src/aggregate.js"), "export const aggregate = true;\n", "utf8");
+    git(root, "add", ".");
+    git(root, "commit", "-m", "feat: integrate two reviewed tasks");
+
+    const strict = buildGithubProgressReport({ root, base });
+    assert.equal(strict.valid, false);
+    assert.ok(strict.errors.some((error) => error.includes("exactly one Task")));
+
+    const aggregate = buildGithubProgressReport({ root, base, aggregate: true });
+    assert.equal(aggregate.valid, true, aggregate.errors.join("\n"));
+    assert.ok(aggregate.tasks.some((task) => task.id === "REPORT-101"));
+    assert.ok(aggregate.tasks.some((task) => task.id === "REPORT-102"));
+    assert.equal(aggregate.git.commits, 1);
+
+    const aggregateCommand = spawnSync(
+      process.execPath,
+      [resolve(root, ".ai-team/github-report.mjs"), "--base", base, "--aggregate"],
+      { cwd: root, encoding: "utf8", windowsHide: true },
+    );
+    assert.equal(aggregateCommand.status, 0, aggregateCommand.stderr || aggregateCommand.stdout);
+    assert.match(aggregateCommand.stdout, /REPORT-101/);
+    assert.match(aggregateCommand.stdout, /REPORT-102/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
 });
 
 test("distributed daily workflow contains no session or local activity collector", () => {
